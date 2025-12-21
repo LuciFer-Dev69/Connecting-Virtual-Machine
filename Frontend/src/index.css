@@ -1,0 +1,146 @@
+:root {
+  /* Default Dark Theme */
+  --bg: #0b0f10;
+  --text: #c8ffdf;
+  --muted: #7dd4a7;
+  --green: #20c997;
+  --cyan: #00e5ff;
+  --danger: #ff6b6b;
+  --card-bg: #111;
+  --card-border: #333;
+  --input-bg: #111;
+  --nav-bg: #111;
+  --sidebar-bg: #111;
+  --button-bg: #2a2a2a;
+}
+
+[data-theme="light"] {
+  --bg: #f0f2f5;
+  --text: #1a1a1a;
+  --muted: #555;
+  --green: #109e75;
+  --cyan: #008c9e;
+  --danger: #d63031;
+  --card-bg: #ffffff;
+  --card-border: #ddd;
+  --input-bg: #f9f9f9;
+  --nav-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --button-bg: #e2e8f0;
+}
+
+body {
+  margin: 0;
+  font-family: Consolas, monospace;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.btn-green {
+  background: var(--green);
+  color: black;
+}
+
+[data-theme="light"] .btn-green {
+  color: white;
+}
+
+.btn-cyan {
+  background: var(--cyan);
+  color: black;
+}
+
+[data-theme="light"] .btn-cyan {
+  color: white;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+}
+
+.input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: var(--input-bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+.nav {
+  background: var(--nav-bg);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--card-border);
+  transition: background 0.3s;
+}
+
+.nav a {
+  color: var(--cyan);
+  margin-right: 10px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.sidebar {
+  width: 200px;
+  background: var(--sidebar-bg);
+  min-height: 100vh;
+  padding: 20px;
+  border-right: 1px solid var(--card-border);
+  transition: background 0.3s;
+}
+
+.sidebar a {
+  display: block;
+  margin: 8px 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  color: var(--cyan);
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  transition: background 0.3s;
+}
+
+.progress {
+  height: 12px;
+  background: var(--card-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--green);
+}

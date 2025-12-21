@@ -1,0 +1,160 @@
+import React from "react";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
+
+const lessonModules = [
+  { 
+    id: 1, 
+    title: "CTF Fundamentals", 
+    level: "Beginner", 
+    lessons: 10,
+    icon: "🎯",
+    color: "#00d9ff"
+  },
+  { 
+    id: 2, 
+    title: "Web Security Mastery", 
+    level: "Intermediate", 
+    lessons: 15,
+    icon: "🛡️",
+    color: "#a78bfa"
+  },
+  { 
+    id: 3, 
+    title: "Advanced Cryptography", 
+    level: "Advanced", 
+    lessons: 12,
+    icon: "🔒",
+    color: "#f59e0b"
+  },
+  { 
+    id: 4, 
+    title: "Binary Exploitation", 
+    level: "Advanced", 
+    lessons: 20,
+    icon: "💻",
+    color: "#ef4444"
+  },
+];
+
+export default function Lessons() {
+  return (
+    <div>
+      <Navbar />
+      <div style={{ display: "flex" }}>
+        <Sidebar active="lessons" />
+        <main style={{ 
+          flex: 1, 
+          padding: "60px 80px", 
+          background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)", 
+          minHeight: "100vh",
+          position: "relative"
+        }}>
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {/* Header */}
+            <div style={{ textAlign: "center", marginBottom: "60px" }}>
+              <h1 style={{ 
+                background: "linear-gradient(135deg, #00d9ff 0%, #a78bfa 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                fontSize: "48px", 
+                marginBottom: "15px",
+                fontWeight: "800",
+                letterSpacing: "2px"
+              }}>
+                Learning Modules
+              </h1>
+              <p style={{ 
+                color: "#888", 
+                fontSize: "16px",
+                maxWidth: "600px",
+                margin: "0 auto"
+              }}>
+                Complete structured learning paths from beginner to advanced level
+              </p>
+            </div>
+            
+            {/* Lesson modules grid */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", 
+              gap: "25px",
+              maxWidth: "1100px",
+              margin: "0 auto"
+            }}>
+              {lessonModules.map((module) => (
+                <a
+                  key={module.id}
+                  href={'#/lesson/' + module.id}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    padding: "35px 30px",
+                    background: "rgba(26,26,26,0.8)",
+                    borderRadius: "16px",
+                    transition: "all 0.3s ease",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    backdropFilter: "blur(10px)"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-5px)";
+                    e.currentTarget.style.borderColor = module.color;
+                    e.currentTarget.style.boxShadow = `0 10px 30px ${module.color}40`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  {/* Icon */}
+                  <div style={{
+                    fontSize: "48px",
+                    marginBottom: "20px"
+                  }}>
+                    {module.icon}
+                  </div>
+
+                  {/* Title */}
+                  <h3 style={{ 
+                    color: "#fff", 
+                    marginBottom: "12px",
+                    fontSize: "22px",
+                    fontWeight: "700"
+                  }}>
+                    {module.title}
+                  </h3>
+
+                  {/* Level badge */}
+                  <div style={{
+                    display: "inline-block",
+                    padding: "5px 12px",
+                    background: `${module.color}20`,
+                    borderRadius: "6px",
+                    marginBottom: "15px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: module.color,
+                    textTransform: "uppercase"
+                  }}>
+                    {module.level}
+                  </div>
+
+                  {/* Lessons count */}
+                  <p style={{ 
+                    color: "#999",
+                    fontSize: "15px",
+                    margin: 0
+                  }}>
+                    {module.lessons} Lessons
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

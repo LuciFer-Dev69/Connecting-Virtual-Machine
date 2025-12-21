@@ -1,0 +1,26 @@
+# Flask - The main web framework for Python
+# Creates the web server and handles HTTP requests/responses
+Flask==3.0.0
+
+# flask-cors - Cross-Origin Resource Sharing
+# Allows your React frontend (different port) to communicate with Flask backend
+# Without this, browser will block requests from frontend to backend
+flask-cors==4.0.0
+
+# mysql-connector-python - MySQL database driver
+# Connects Python to MySQL database
+# Lets you run SQL queries from Python code
+mysql-connector-python==8.2.0
+
+# bcrypt - Password hashing library
+# Securely hashes passwords before storing in database
+# Prevents storing plain text passwords (security!)
+bcrypt==4.1.2
+
+# python-dotenv - Environment variables loader
+# Reads .env file and loads DB_HOST, DB_USER, DB_PASSWORD, etc.
+# Keeps sensitive info out of your code
+python-dotenv==1.0.0
+
+# Google Gemini API
+google-generativeai
