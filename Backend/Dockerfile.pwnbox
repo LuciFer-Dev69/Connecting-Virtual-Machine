@@ -1,0 +1,50 @@
+FROM ubuntu:20.04
+
+# Avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update || (sleep 5 && apt-get update) && \
+    apt-get install -y --no-install-recommends \
+    openssh-server \
+    sudo \
+    iproute2 \
+    net-tools \
+    iputils-ping \
+    vim \
+    nano \
+    curl \
+    wget \
+    python3 \
+    python3-pip \
+    netcat \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Setup SSH
+RUN mkdir /var/run/sshd
+
+# Create user 'chakra' with password 'user'
+RUN useradd -m -s /bin/bash chakra && \
+    echo 'chakra:user' | chpasswd && \
+    usermod -aG sudo chakra
+
+# Configure SSH to allow password auth
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+RUN sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# Setup Level 1 Challenges
+WORKDIR /home/chakra
+
+# Level 1: Dashed filename
+# "The password for the next level is in the file '-'"
+RUN echo 'chakra{dashed_filename_master}' > -
+RUN chown chakra:chakra -
+
+# Readme
+RUN echo "Welcome to Chakra PwnBox!\n\nLevel 1 Goal: Read the file named '-'.\n" > README.txt
+RUN chown chakra:chakra README.txt
+
+EXPOSE 22
+
+CMD ["/usr/sbin/sshd", "-D"]

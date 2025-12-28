@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
-import MockTerminal from "../components/MockTerminal";
+import WebTerminal from "../components/WebTerminal";
 
 export default function ChakraTerminal() {
     const [level, setLevel] = useState(1);
@@ -39,25 +39,22 @@ export default function ChakraTerminal() {
                         marginBottom: "20px",
                         border: "1px solid #333"
                     }}>
-                        <h2 style={{ fontSize: "1.2rem", marginBottom: "10px", color: "#ffeb3b" }}>Level Goal</h2>
-                        <p style={{ color: "#aaa" }}>
-                            The password for the next level is stored in a file called
-                            <code style={{ background: "#333", padding: "2px 6px", borderRadius: "4px", margin: "0 5px", color: "#fff" }}>-</code>
-                            located in the home directory.
-                        </p>
-                        <div style={{ marginTop: "15px" }}>
-                            <strong style={{ color: "#51cf66" }}>Commands you may need:</strong>
-                            <span style={{ marginLeft: "10px", color: "#888", fontFamily: "monospace" }}>ls, cd, cat, file, pwd</span>
-                        </div>
-                        <div style={{ marginTop: "10px" }}>
-                            <strong style={{ color: "#51cf66" }}>Helpful Reading:</strong>
-                            <a href="https://www.google.com/search?q=Dashed+filename" target="_blank" rel="noreferrer" style={{ marginLeft: "10px", color: "var(--cyan)" }}>
-                                Google Search for "Dashed filename"
-                            </a>
+                        <h2 style={{ fontSize: "1rem", marginBottom: "10px", color: "#51cf66", fontFamily: "monospace" }}>
+                            {`user@${"192.168.81.134"}`}
+                        </h2>
+
+                        <div style={{
+                            border: "1px solid #333",
+                            borderRadius: "8px",
+                            overflow: "hidden",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.5)"
+                        }}>
+                            <WebTerminal
+                                host="192.168.81.134"
+                                user="ubuntu"
+                            />
                         </div>
                     </div>
-
-                    <MockTerminal onSolved={handleLevelSolve} />
 
                     {solved && (
                         <div style={{

@@ -24,3 +24,14 @@ python-dotenv==1.0.0
 
 # Google Gemini API
 google-generativeai
+
+# Docker Client
+docker==7.0.0
+
+# Web SSH
+flask-socketio
+paramiko
+gevent
+gevent-websocket
+
+

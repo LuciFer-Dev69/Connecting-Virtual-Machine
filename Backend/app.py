@@ -1,3 +1,6 @@
+from gevent import monkey
+monkey.patch_all()
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import mysql.connector
@@ -10,8 +13,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import ai_service
+import pwnbox_manager
+import ssh_manager
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
+# Initialize SocketIO with CORS allowed
+socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 # Database connection pool
@@ -26,9 +34,9 @@ db_config = {
 
 try:
     connection_pool = pooling.MySQLConnectionPool(**db_config)
-    print("✅ Database connection pool created successfully")
+    print("Database connection pool created successfully")
 except mysql.connector.Error as err:
-    print(f"❌ Database connection failed: {err}")
+    print(f"Database connection failed: {err}")
 
 def get_db_connection():
     """Get a connection from the pool"""
@@ -351,6 +359,43 @@ def ai_chat():
         return jsonify({"error": "Failed to get AI response"}), 500
 
 
+# ==================== PWNBOX ROUTES ====================
+
+@app.route('/api/pwnbox/spawn', methods=['POST'])
+def spawn_pwnbox_route():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({"error": "User ID required"}), 400
+
+        # Build image if needed (this is blocking, ideally async but simplified here)
+        pwnbox_manager.build_image()
+        
+        info = pwnbox_manager.spawn_pwnbox(user_id)
+        return jsonify(info), 200
+    except Exception as e:
+        print(f"PwnBox spawn error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/pwnbox/stop', methods=['POST'])
+def stop_pwnbox_route():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({"error": "User ID required"}), 400
+
+        success = pwnbox_manager.stop_pwnbox(user_id)
+        if success:
+            return jsonify({"message": "PwnBox stopped"}), 200
+        else:
+            return jsonify({"error": "Failed to stop or not found"}), 404
+    except Exception as e:
+        print(f"PwnBox stop error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 # ==================== USER ROUTES ====================
 
 @app.route('/api/leaderboard', methods=['GET'])
@@ -621,6 +666,44 @@ def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
 
+# ==================== WEB SSH EVENTS ====================
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected to WebSocket')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+    ssh_manager.close_session(request.sid)
+
+@socketio.on('ssh_connect')
+def handle_ssh_connect(data):
+    # Securely load credentials from environment
+    host = os.getenv("SSH_HOST", "192.168.81.134")
+    port = int(os.getenv("SSH_PORT", 22))
+    username = os.getenv("SSH_USER", "ubuntu")
+    password = os.getenv("SSH_PASSWORD", "kali")
+    
+    # Optional: Allow overriding host for specialized scenarios (if secure)
+    # host = data.get('host') or host
+    
+    print(f"SSH Connecting to {username}@{host}:{port}")
+    
+    success = ssh_manager.create_session(socketio, request.sid, host, username, password, port)
+    
+    if success is True:
+        emit('ssh_output', f"\r\n\033[1;32m[+] Connected to secure lab environment({host}).\033[0m\r\n")
+    else:
+        emit('ssh_error', f"Connection failed: {success}")
+
+@socketio.on('ssh_input')
+def handle_ssh_input(data):
+    session = ssh_manager.get_session(request.sid)
+    if session:
+        session.write(data)
+
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # run with socketio
+    socketio.run(app, host='0.0.0.0', port=port, debug=True)

@@ -26,13 +26,13 @@ def update_schema():
         """)
 
         conn.commit()
-        print("✅ Schema updated successfully!")
+        print("Schema updated successfully!")
 
         cursor.close()
         conn.close()
 
     except Exception as e:
-        print(f"❌ Error updating schema: {e}")
+        print(f"Error updating schema: {e}")
         import traceback
         traceback.print_exc()
 

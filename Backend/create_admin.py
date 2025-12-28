@@ -40,10 +40,10 @@ try:
         )
 
     conn.commit()
-    print(f"✅ Admin user configured successfully.\nEmail: {email}\nPassword: {password}")
+    print(f"Admin user configured successfully.\nEmail: {email}\nPassword: {password}")
 
     cursor.close()
     conn.close()
 
 except Exception as e:
-    print(f"❌ Error: {e}")
+    print(f"Error: {e}")

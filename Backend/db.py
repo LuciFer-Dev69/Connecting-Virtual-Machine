@@ -18,9 +18,9 @@ db_config = {
 
 try:
     connection_pool = pooling.MySQLConnectionPool(**db_config)
-    print("✅ Database connection pool created successfully")
+    print("Database connection pool created successfully")
 except mysql.connector.Error as err:
-    print(f"❌ Database connection failed: {err}")
+    print(f"Database connection failed: {err}")
     connection_pool = None
 
 def get_db_connection():

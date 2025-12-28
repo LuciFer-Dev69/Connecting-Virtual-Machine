@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: chakra_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: chakraDB
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - chakra-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Backend
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: chakra_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASSWORD=userpassword
+      - DB_NAME=chakraDB
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+    volumes:
+      - ./Backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - chakra-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: chakra_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - chakra-network
+    stdin_open: true
+    tty: true
+
+  # PwnBox SSH Environment
+  pwnbox:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.pwnbox
+    container_name: chakra_pwnbox
+    restart: always
+    ports:
+      - "2222:22"
+    networks:
+      - chakra-network
+    cap_add:
+      - NET_ADMIN
+
+networks:
+  chakra-network:
+    driver: bridge
+
+volumes:
+  db_data:
