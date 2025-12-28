@@ -1,4 +1,4 @@
-# 🛡️ Chakra CTF Platform
+# 🛡️ CTF Platform
 
 A comprehensive, containerized Capture The Flag (CTF) platform featuring a React frontend, Flask backend, and a dedicated PwnBox environment for security challenges.
 
