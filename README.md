@@ -61,9 +61,21 @@ cp .env.example .env
 docker-compose up --build -d
 ```
 
-### 3. Initialize Database
+### 3. Initialize & Populate Database 🚀
+
+> [!IMPORTANT]
+> The database (`db_data` volume) is local to your machine and NOT synced via GitHub. After your first pull, you **must** run these commands to activate all challenges.
+
 ```bash
+# Initialize the database schema
 docker exec -it chakra_backend python init_db.py
+
+# Populate all CTF challenges & curriculum
+docker exec -it chakra_backend python add_all_challenges.py
+docker exec -it chakra_backend python add_full_curriculum.py
+
+# (Optional) Create an admin user
+docker exec -it chakra_backend python create_admin.py
 ```
 
 ### 4. Access the Application
