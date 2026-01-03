@@ -3,6 +3,8 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { API_BASE } from "../config";
 import ChallengeHint from "../components/ChallengeHint";
+import WebTerminal from "../components/WebTerminal";
+import { Terminal as TerminalIcon, Award, ChevronRight } from "lucide-react";
 
 export default function WebChallenge({ level }) {
     const [currentLevel, setCurrentLevel] = useState(level || 1);
@@ -11,6 +13,8 @@ export default function WebChallenge({ level }) {
     const [message, setMessage] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [challengeId, setChallengeId] = useState(null);
+    const [challenge, setChallenge] = useState(null);
+    const [showTerminal, setShowTerminal] = useState(false);
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     // Tutorial state for Level 1
@@ -40,6 +44,7 @@ export default function WebChallenge({ level }) {
 
             if (challenge) {
                 setChallengeId(challenge.id);
+                setChallenge(challenge);
             }
         } catch (err) {
             console.error(err);
@@ -129,6 +134,7 @@ export default function WebChallenge({ level }) {
             setMessage("");
             setSubmitted(false);
             setPassword("");
+            setShowTerminal(false);
         } else {
             window.location.hash = "#/challenges";
         }
@@ -155,10 +161,39 @@ export default function WebChallenge({ level }) {
                     minHeight: "100vh",
                     color: "var(--text)"
                 }}>
-                    <h1 style={{ color: "var(--cyan)", marginBottom: "20px" }}>
-                        Web Exploitation - Level {currentLevel}
-                        {currentLevel === 1 && <span style={{ fontSize: "0.6em", color: "#ffd43b", marginLeft: "15px" }}>📚 TUTORIAL</span>}
-                    </h1>
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "20px"
+                    }}>
+                        <h1 style={{ color: "var(--cyan)", margin: 0 }}>
+                            Web Exploitation - Level {currentLevel}
+                            {currentLevel === 1 && <span style={{ fontSize: "0.6em", color: "#ffd43b", marginLeft: "15px" }}>📚 TUTORIAL</span>}
+                        </h1>
+
+                        {currentLevel >= 4 && (
+                            <button
+                                onClick={() => setShowTerminal(!showTerminal)}
+                                style={{
+                                    background: showTerminal ? "var(--danger)" : "var(--green)",
+                                    color: "#000",
+                                    border: "none",
+                                    padding: "8px 16px",
+                                    borderRadius: "8px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    fontWeight: "bold",
+                                    cursor: "pointer",
+                                    boxShadow: "0 0 10px rgba(0,0,0,0.3)"
+                                }}
+                            >
+                                <TerminalIcon size={18} />
+                                {showTerminal ? "Terminate PwnBox" : "Spawn PwnBox"}
+                            </button>
+                        )}
+                    </div>
 
                     <div style={{
                         background: "var(--card-bg)",
@@ -312,7 +347,77 @@ export default function WebChallenge({ level }) {
                             </div>
                         )}
 
-                        {/* Hints for Level > 1 */}
+                        {/* Level 4/5 - INTERACTIVE LAB MODE */}
+                        {currentLevel >= 4 && challenge && (
+                            <div style={{ display: "grid", gridTemplateColumns: showTerminal ? "400px 1fr" : "1fr", gap: "20px", transition: "all 0.3s ease", marginTop: "20px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                                    <div style={{ background: "rgba(0, 212, 255, 0.05)", padding: "20px", borderRadius: "10px", border: "1px solid rgba(0, 212, 255, 0.2)" }}>
+                                        <h3 style={{ color: "var(--cyan)", marginTop: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+                                            <Award size={20} /> Level Objective
+                                        </h3>
+                                        <p style={{ lineHeight: "1.6", color: "var(--text)" }}>
+                                            {challenge.description}
+                                        </p>
+                                    </div>
+
+                                    <div style={{ background: "var(--input-bg)", padding: "15px", borderRadius: "10px" }}>
+                                        <h4 style={{ color: "var(--muted)", marginTop: 0, marginBottom: "10px" }}>Lab Targets</h4>
+                                        <code style={{ display: "block", padding: "10px", background: "#000", color: "#51cf66", borderRadius: "5px", fontSize: "0.9rem" }}>
+                                            API Base: http://backend:5000<br />
+                                            Internal Info: /api/vuln/ping
+                                        </code>
+                                    </div>
+
+                                    <div style={{ marginTop: "10px" }}>
+                                        <h3 style={{ marginBottom: "15px" }}>Submit Flag</h3>
+                                        <div style={{ display: "flex", gap: "10px" }}>
+                                            <input
+                                                className="input"
+                                                placeholder="flag{...}"
+                                                value={manualFlag}
+                                                onChange={(e) => setManualFlag(e.target.value)}
+                                                style={{ flex: 1, margin: 0 }}
+                                            />
+                                            <button className="btn btn-green" onClick={submitChallenge} style={{ margin: 0 }}>Submit</button>
+                                        </div>
+                                    </div>
+
+                                    <ChallengeHint challengeId={challengeId} user={user} />
+                                </div>
+
+                                {showTerminal && (
+                                    <div style={{
+                                        background: "#000",
+                                        borderRadius: "12px",
+                                        border: "1px solid #333",
+                                        overflow: "hidden",
+                                        height: "550px",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+                                    }}>
+                                        <div style={{
+                                            background: "#1e1e1e",
+                                            padding: "8px 12px",
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            borderBottom: "1px solid #333"
+                                        }}>
+                                            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                                <TerminalIcon size={14} color="var(--green)" />
+                                                <span style={{ fontSize: "0.75rem", color: "#888", fontWeight: "bold" }}>chakra@pwnbox:~ (Web-Lab)</span>
+                                            </div>
+                                        </div>
+                                        <div style={{ flex: 1, position: "relative" }}>
+                                            <WebTerminal host="pwnbox" user={user} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Standard Hints */}
                         {currentLevel > 1 && challengeId && (
                             <ChallengeHint challengeId={challengeId} user={user} />
                         )}

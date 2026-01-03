@@ -30,10 +30,34 @@ const lessonModules = [
   {
     id: 4,
     title: "Binary Exploitation",
-    level: "Advanced",
+    level: "Intermediate",
     lessons: 20,
-    icon: "💻",
-    color: "#ef4444"
+    icon: "⚙️",
+    color: "#ffd43b"
+  },
+  {
+    id: 5,
+    title: "Digital Forensics",
+    level: "Intermediate",
+    lessons: 10,
+    icon: "🔍",
+    color: "#51cf66"
+  },
+  {
+    id: 6,
+    title: "Linux Fundamentals",
+    level: "Beginner",
+    lessons: 8,
+    icon: "🐧",
+    color: "#e8590c"
+  },
+  {
+    id: 7,
+    title: "AI Security",
+    level: "Advanced",
+    lessons: 10,
+    icon: "🤖",
+    color: "#a78bfa"
   },
 ];
 

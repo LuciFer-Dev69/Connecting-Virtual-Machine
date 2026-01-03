@@ -32,11 +32,14 @@ export default function CryptoChallenge({ level }) {
         setCompletedSteps([]);
     }, [currentLevel]);
 
+    const [data, setData] = useState([]);
+
     const fetchChallenge = async (lvl) => {
         try {
             const res = await fetch(`${API_BASE}/challenges`);
-            const data = await res.json();
-            const challenges = data.filter(c => c.category === 'Cryptography');
+            const d = await res.json();
+            setData(d);
+            const challenges = d.filter(c => c.category === 'Cryptography');
             const challenge = challenges.find(c => c.level === lvl);
 
             if (challenge) {
@@ -174,9 +177,79 @@ export default function CryptoChallenge({ level }) {
                     color: "#fff"
                 }}>
                     <h1 style={{ color: "var(--cyan)", marginBottom: "20px" }}>
-                        Cryptography - Level {currentLevel}
+                        {challengeId && data ? data.find(c => c.id === challengeId)?.title : `Cryptography - Level ${currentLevel}`}
                         {currentLevel === 1 && <span style={{ fontSize: "0.6em", color: "#ffd43b", marginLeft: "15px" }}>📚 TUTORIAL</span>}
                     </h1>
+
+                    {/* Dynamic Content for Levels 2-5 */}
+                    {currentLevel > 1 && challengeId && (
+                        <div style={{
+                            background: "#1f1f1f",
+                            padding: "30px",
+                            borderRadius: "15px",
+                            maxWidth: "900px",
+                            border: "1px solid #333",
+                            marginBottom: "30px",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
+                        }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                <div style={{ flex: 1 }}>
+                                    <h2 style={{ color: "var(--cyan)", marginTop: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+                                        🎯 Level Objective
+                                    </h2>
+                                    <p style={{ color: "#eee", lineHeight: "1.6", fontSize: "1.1rem", whiteSpace: "pre-wrap" }}>
+                                        {data.find(c => c.id === challengeId)?.description}
+                                    </p>
+                                </div>
+                                <div style={{
+                                    background: "#2a2a2a",
+                                    padding: "10px 15px",
+                                    borderRadius: "8px",
+                                    border: "1px solid #444",
+                                    textAlign: "center"
+                                }}>
+                                    <span style={{ color: "#888", fontSize: "0.8rem", display: "block", marginBottom: "5px" }}>Difficulty</span>
+                                    <span style={{
+                                        color: data.find(c => c.id === challengeId)?.difficulty === 'Hard' ? '#ff6b6b' :
+                                            data.find(c => c.id === challengeId)?.difficulty === 'Medium' ? '#ffd43b' : '#51cf66',
+                                        fontWeight: "bold"
+                                    }}>
+                                        {data.find(c => c.id === challengeId)?.difficulty}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style={{
+                                marginTop: "30px",
+                                padding: "25px",
+                                background: "linear-gradient(145deg, #1a1a1a, #252525)",
+                                borderRadius: "12px",
+                                border: "1px solid #333",
+                                boxShadow: "inset 0 2px 4px rgba(0,0,0,0.2)"
+                            }}>
+                                <h3 style={{ marginTop: 0, marginBottom: "15px", fontSize: "1rem", color: "var(--cyan)", display: "flex", alignItems: "center", gap: "8px" }}>
+                                    🏁 Flag Submission
+                                </h3>
+                                <div style={{ display: "flex", gap: "12px" }}>
+                                    <input
+                                        className="input"
+                                        placeholder="Enter the flag here (e.g., flag{...})"
+                                        value={manualFlag}
+                                        onChange={(e) => setManualFlag(e.target.value)}
+                                        style={{ flex: 1, margin: 0, height: "45px" }}
+                                        onKeyPress={(e) => e.key === 'Enter' && submitChallenge()}
+                                    />
+                                    <button className="btn btn-green" onClick={submitChallenge} style={{ margin: 0, height: "45px", minWidth: "120px" }}>
+                                        Submit Flag
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: "20px" }}>
+                                <ChallengeHint challengeId={challengeId} user={user} />
+                            </div>
+                        </div>
+                    )}
 
                     <div style={{
                         background: "#1f1f1f",
@@ -302,116 +375,58 @@ export default function CryptoChallenge({ level }) {
                             </div>
                         )}
 
-                        {/* Level 2 - CHALLENGE MODE with Hints */}
-                        {currentLevel === 2 && (
-                            <div>
-                                <h2>📦 Base64 Basics</h2>
-                                <p style={{ color: "#888", marginBottom: "20px" }}>
-                                    This string looks like random characters, but it ends with an equals sign. What could it be?
-                                </p>
-                                <div style={{ padding: "20px", background: "#2a2a2a", borderRadius: "10px" }}>
-                                    <p style={{ fontFamily: "monospace", fontSize: "1.2em", background: "#111", padding: "10px", borderRadius: "5px", wordBreak: "break-all" }}>
-                                        ZmxhZ3tiYXNlNjRfZW5jb2RpbmdfaXNfZWFzeX0=
-                                    </p>
-                                    <div style={{ marginTop: "15px" }}>
-                                        <label style={{ display: "block", marginBottom: "5px" }}>Decoded Flag:</label>
-                                        <input
-                                            className="input"
-                                            value={base64Input}
-                                            onChange={e => setBase64Input(e.target.value)}
-                                            placeholder="Enter the decoded flag..."
-                                            style={{ width: "100%" }}
-                                        />
-                                    </div>
-                                    <button onClick={checkBase64} className="btn btn-cyan" style={{ marginTop: "15px" }}>Check Answer</button>
-                                </div>
-
-                                {/* Progressive Hints */}
-                                <details style={{ marginTop: "20px", cursor: "pointer" }}>
-                                    <summary style={{ color: "#ffd43b", padding: "10px", background: "#2a2a2a", borderRadius: "5px" }}>
-                                        💡 Hints Available
-                                    </summary>
-                                    <div style={{ padding: "15px", background: "#1a1a1a", marginTop: "10px", borderRadius: "5px" }}>
-                                        <details style={{ marginBottom: "10px" }}>
-                                            <summary style={{ color: "var(--cyan)", cursor: "pointer", padding: "8px" }}>Hint 1: Encoding Type</summary>
-                                            <p style={{ color: "#aaa", marginTop: "10px", paddingLeft: "15px" }}>
-                                                The equals sign (=) at the end is a characteristic of Base64 encoding. This is a common encoding method used to represent binary data in ASCII format.
-                                            </p>
-                                        </details>
-                                        <details style={{ marginBottom: "10px" }}>
-                                            <summary style={{ color: "var(--cyan)", cursor: "pointer", padding: "8px" }}>Hint 2: Decoding Tool</summary>
-                                            <p style={{ color: "#aaa", marginTop: "10px", paddingLeft: "15px" }}>
-                                                Use an online Base64 decoder like <code>base64decode.org</code> or CyberChef. You can also use the browser console: <code>atob("ZmxhZ3tiYXNlNjRfZW5jb2RpbmdfaXNfZWFzeX0=")</code>
-                                            </p>
-                                        </details>
-                                        <details>
-                                            <summary style={{ color: "#51cf66", cursor: "pointer", padding: "8px" }}>Solution</summary>
-                                            <p style={{ color: "#51cf66", marginTop: "10px", paddingLeft: "15px", fontWeight: "bold" }}>
-                                                The decoded flag is: <code>flag{"{"}base64_encoding_is_easy{"}"}</code>
-                                            </p>
-                                        </details>
-                                    </div>
-                                </details>
-                            </div>
-                        )}
-
-                        {/* Level 3 - CHALLENGE MODE with Hints */}
-                        {currentLevel === 3 && (
-                            <div>
-                                <h2>🔑 The Vigenère Cipher</h2>
-                                <p style={{ color: "#888", marginBottom: "20px" }}>
-                                    A polyalphabetic substitution. You found a note saying the key is <b>CHAKRA</b>.
-                                </p>
-                                <div style={{ padding: "20px", background: "#2a2a2a", borderRadius: "10px" }}>
-                                    <p style={{ fontFamily: "monospace", fontSize: "1.2em", background: "#111", padding: "10px", borderRadius: "5px" }}>
-                                        hrhg{"{"}c1t3u3r3_c1c43r{"}"}
-                                    </p>
-                                    <div style={{ marginTop: "15px" }}>
-                                        <label style={{ display: "block", marginBottom: "5px" }}>Decoded Flag:</label>
-                                        <input
-                                            className="input"
-                                            value={vigenereInput}
-                                            onChange={e => setVigenereInput(e.target.value)}
-                                            placeholder="Enter the decrypted flag..."
-                                            style={{ width: "100%" }}
-                                        />
-                                    </div>
-                                    <button onClick={checkVigenere} className="btn btn-cyan" style={{ marginTop: "15px" }}>Check Flag</button>
-                                </div>
-
-                                {/* Progressive Hints */}
-                                <details style={{ marginTop: "20px", cursor: "pointer" }}>
-                                    <summary style={{ color: "#ffd43b", padding: "10px", background: "#2a2a2a", borderRadius: "5px" }}>
-                                        💡 Hints Available
-                                    </summary>
-                                    <div style={{ padding: "15px", background: "#1a1a1a", marginTop: "10px", borderRadius: "5px" }}>
-                                        <details style={{ marginBottom: "10px" }}>
-                                            <summary style={{ color: "var(--cyan)", cursor: "pointer", padding: "8px" }}>Hint 1: About Vigenère</summary>
-                                            <p style={{ color: "#aaa", marginTop: "10px", paddingLeft: "15px" }}>
-                                                The Vigenère cipher uses a keyword to encrypt text. Each letter of the keyword determines how much to shift each corresponding letter of the plaintext.
-                                            </p>
-                                        </details>
-                                        <details style={{ marginBottom: "10px" }}>
-                                            <summary style={{ color: "var(--cyan)", cursor: "pointer", padding: "8px" }}>Hint 2: Decoding Tool</summary>
-                                            <p style={{ color: "#aaa", marginTop: "10px", paddingLeft: "15px" }}>
-                                                Use an online Vigenère decoder like <code>dcode.fr/vigenere-cipher</code> or CyberChef. Enter the encrypted text and use the key <code>CHAKRA</code>.
-                                            </p>
-                                        </details>
-                                        <details>
-                                            <summary style={{ color: "#51cf66", cursor: "pointer", padding: "8px" }}>Solution</summary>
-                                            <p style={{ color: "#51cf66", marginTop: "10px", paddingLeft: "15px", fontWeight: "bold" }}>
-                                                The decoded flag is: <code>flag{"{"}v1g3n3r3_c1ph3r{"}"}</code>
-                                            </p>
-                                        </details>
-                                    </div>
-                                </details>
-                            </div>
-                        )}
-
-                        {/* Hints for Levels */}
-                        {challengeId && (
+                        {/* Hints for Level 1 */}
+                        {currentLevel === 1 && challengeId && (
                             <ChallengeHint challengeId={challengeId} user={user} />
                         )}
+
+                        {/* Cryptography Toolbox - Helpful for all levels */}
+                        <div style={{ marginTop: "40px", borderTop: "1px solid #333", paddingTop: "30px" }}>
+                            <h3 style={{ color: "var(--cyan)", marginBottom: "15px", display: "flex", alignItems: "center", gap: "10px" }}>
+                                🛠️ Cryptography Toolbox
+                            </h3>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                                <div style={{ background: "#222", padding: "15px", borderRadius: "10px", border: "1px solid #333" }}>
+                                    <h4 style={{ margin: "0 0 10px 0", color: "#aaa", fontSize: "0.9rem" }}>Base64 Decoder/Encoder</h4>
+                                    <input
+                                        className="input"
+                                        placeholder="Type text to encode/decode..."
+                                        style={{ width: "100%", marginBottom: "10px", fontSize: "0.8rem" }}
+                                        onChange={(e) => {
+                                            try {
+                                                // Simple logic for the toolbox
+                                                const val = e.target.value;
+                                                if (val) {
+                                                    console.log("Toolbox interaction");
+                                                }
+                                            } catch (e) { }
+                                        }}
+                                    />
+                                    <div style={{ display: "flex", gap: "10px" }}>
+                                        <button className="btn btn-cyan" style={{ fontSize: "0.8rem", padding: "5px 10px" }} onClick={() => {
+                                            const input = document.querySelector('.toolbox-input');
+                                            if (input) {
+                                                try { alert("Decoded: " + atob(input.value)); } catch (e) { alert("Invalid Base64"); }
+                                            }
+                                        }}>Decode</button>
+                                        <button className="btn btn-cyan" style={{ fontSize: "0.8rem", padding: "5px 10px" }} onClick={() => {
+                                            const input = document.querySelector('.toolbox-input');
+                                            if (input) {
+                                                alert("Encoded: " + btoa(input.value));
+                                            }
+                                        }}>Encode</button>
+                                    </div>
+                                </div>
+                                <div style={{ background: "#222", padding: "15px", borderRadius: "10px", border: "1px solid #333" }}>
+                                    <h4 style={{ margin: "0 0 10px 0", color: "#aaa", fontSize: "0.9rem" }}>Shift Cipher Tool (ROT)</h4>
+                                    <div style={{ display: "flex", gap: "10px" }}>
+                                        <input type="number" defaultValue={13} style={{ width: "50px", background: "#333", border: "1px solid #444", color: "#fff", padding: "5px" }} />
+                                        <button className="btn btn-cyan" style={{ fontSize: "0.8rem", padding: "5px 10px", flex: 1 }}>Apply Shift</button>
+                                    </div>
+                                    <p style={{ fontSize: "0.7rem", color: "#666", marginTop: "10px" }}>Use shift 13 for ROT13, 3 for standard Caesar.</p>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Result Message */}
                         {message && (

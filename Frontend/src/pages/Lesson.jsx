@@ -86,6 +86,69 @@ const lessons = {
         content: "Exploit vulnerable programs with increasing difficulty levels to master binary exploitation."
       }
     ]
+  },
+  "5": {
+    title: "Digital Forensics - Module 1",
+    sections: [
+      {
+        heading: "Introduction to Digital Forensics",
+        content: "Learning the process of identifying, preserving, and analyzing digital evidence."
+      },
+      {
+        heading: "File Analysis & Metadata",
+        content: "Understanding file headers, magic bytes, and hidden metadata in images and documents."
+      },
+      {
+        heading: "Network Forensics",
+        content: "Analyzing packet captures (PCAPs) with Wireshark to reconstruct attacker activities."
+      },
+      {
+        heading: "Steganography",
+        content: "The art of hiding data within data. Techniques for discovering hidden messages in media."
+      }
+    ]
+  },
+  "6": {
+    title: "Linux Fundamentals (Bandit Path)",
+    sections: [
+      {
+        heading: "The Linux CLI",
+        content: "Navigating the filesystem with `cd`, `ls`, and `pwd`. Understanding the root directory."
+      },
+      {
+        heading: "Reading & Manipulating Files",
+        content: "Commands like `cat`, `less`, `head`, and `tail`. Handling special filenames like dashes and spaces."
+      },
+      {
+        heading: "The Power of Pipes & Grep",
+        content: "Filtering output with `grep`, redirecting streams with `>`, and chaining commands with `|`."
+      },
+      {
+        heading: "Permissions & Ownership",
+        content: "Understanding `chmod`, `chown`, and the `rwx` permission bits."
+      }
+    ]
+  },
+  "7": {
+    title: "AI & Model Security",
+    sections: [
+      {
+        heading: "Introduction to LLM Security",
+        content: "Understanding the unique attack surface of Large Language Models and AI agents."
+      },
+      {
+        heading: "Prompt Injection",
+        content: "Direct and indirect prompt injection techniques to bypass system instructions."
+      },
+      {
+        heading: "Jailbreaking & Evasion",
+        content: "Manipulating model behavior to bypass safety filters and content controls."
+      },
+      {
+        heading: "Data Poisoning & Extraction",
+        content: "Risks of training data leakage and adversarial attacks on model inputs."
+      }
+    ]
   }
 };
 

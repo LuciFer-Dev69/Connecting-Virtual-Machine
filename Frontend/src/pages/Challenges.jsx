@@ -10,7 +10,8 @@ import {
   Bot,
   Box,
   Trophy,
-  Target
+  Target,
+  Terminal
 } from "lucide-react";
 
 const categories = [
@@ -58,6 +59,15 @@ const categories = [
     learn: "Prompt Injection, Jailbreaking, LLM Attacks",
     color: "#a78bfa",
     difficulty: "Advanced"
+  },
+  {
+    name: "Linux / Bandit",
+    key: "Linux",
+    icon: Terminal,
+    description: "Master the Linux command line. Essential skills for any hacker.",
+    learn: "Bash, Permissions, Pipes, SSH",
+    color: "#e8590c",
+    difficulty: "Beginner"
   },
   {
     name: "Misc / General",

@@ -32,11 +32,14 @@ export default function ReverseChallenge({ level }) {
         setCompletedSteps([]);
     }, [currentLevel]);
 
+    const [data, setData] = useState([]);
+
     const fetchChallenge = async (lvl) => {
         try {
             const res = await fetch(`${API_BASE}/challenges`);
-            const data = await res.json();
-            const challenges = data.filter(c => c.category === 'Reverse Engineering');
+            const d = await res.json();
+            setData(d);
+            const challenges = d.filter(c => c.category === 'Reverse Engineering');
             const challenge = challenges.find(c => c.level === lvl);
 
             if (challenge) {
@@ -175,9 +178,48 @@ export default function ReverseChallenge({ level }) {
                     color: "#fff"
                 }}>
                     <h1 style={{ color: "var(--cyan)", marginBottom: "20px" }}>
-                        Reverse Engineering - Level {currentLevel}
+                        {challengeId && data ? data.find(c => c.id === challengeId)?.title : `Reverse Engineering - Level ${currentLevel}`}
                         {currentLevel === 1 && <span style={{ fontSize: "0.6em", color: "#ffd43b", marginLeft: "15px" }}>📚 TUTORIAL</span>}
                     </h1>
+
+                    {/* Dynamic Fallback for Levels > 3 */}
+                    {currentLevel > 3 && challengeId && (
+                        <div style={{
+                            background: "#1f1f1f",
+                            padding: "30px",
+                            borderRadius: "15px",
+                            maxWidth: "900px",
+                            border: "1px solid #333",
+                            marginBottom: "30px"
+                        }}>
+                            <h2 style={{ color: "var(--cyan)", marginTop: 0 }}>🎯 Level Goal</h2>
+                            <p style={{ color: "#eee", lineHeight: "1.6", fontSize: "1.1rem" }}>
+                                {data.find(c => c.id === challengeId)?.description}
+                            </p>
+
+                            <div style={{
+                                marginTop: "30px",
+                                padding: "20px",
+                                background: "#2a2a2a",
+                                borderRadius: "10px",
+                                border: "1px solid #444"
+                            }}>
+                                <h3 style={{ marginTop: 0, marginBottom: "15px", fontSize: "1rem", color: "#888" }}>Submit Flag</h3>
+                                <div style={{ display: "flex", gap: "10px" }}>
+                                    <input
+                                        className="input"
+                                        placeholder="flag{...}"
+                                        value={manualFlag}
+                                        onChange={(e) => setManualFlag(e.target.value)}
+                                        style={{ flex: 1, margin: 0 }}
+                                    />
+                                    <button className="btn btn-green" onClick={submitChallenge} style={{ margin: 0 }}>Submit</button>
+                                </div>
+                            </div>
+
+                            <ChallengeHint challengeId={challengeId} user={user} />
+                        </div>
+                    )}
 
                     <div style={{
                         background: "#1f1f1f",

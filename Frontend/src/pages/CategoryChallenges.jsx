@@ -76,6 +76,8 @@ export default function CategoryChallenges({ category }) {
 
   // ✅ IMPROVED LOGIC: Level unlocks if previous level has completed challenges
   const isLevelUnlocked = (level) => {
+    return true; // Unlocked for testing purposes as requested
+    /* 
     if (level === 1) return true; // Level 1 always unlocked
 
     // Check if previous level is completed
@@ -84,6 +86,7 @@ export default function CategoryChallenges({ category }) {
 
     console.log(`Level ${level}: previous level (${prevLevel}) completed:`, isPrevLevelComplete);
     return isPrevLevelComplete;
+    */
   };
 
   return (
@@ -226,7 +229,8 @@ export default function CategoryChallenges({ category }) {
                                         c.category === 'Forensics' ? `#/forensics-challenge/${c.level}` :
                                           c.category === 'Reverse Engineering' ? `#/reverse-challenge/${c.level}` :
                                             c.category === 'Misc' ? `#/misc-challenge/${c.level}` :
-                                              `#/challenge/${c.id}`
+                                              c.category === 'Linux' ? `#/linux-challenge/${c.level}` :
+                                                `#/challenge/${c.id}`
                                 }
                                 style={{
                                   display: "inline-block",

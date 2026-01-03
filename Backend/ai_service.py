@@ -62,7 +62,7 @@ def get_system_prompt(level):
 
 def get_llm_response(level, user_message, history=[]):
     """
-    Generates a response from the LLM based on the level and user message.
+    Generates a response from the LLM based on the level, user message, and history.
     """
     if not api_key:
         return "Error: GEMINI_API_KEY not found in environment variables. Please set it in .env."
@@ -70,13 +70,16 @@ def get_llm_response(level, user_message, history=[]):
     try:
         model = genai.GenerativeModel('gemini-flash-latest')
         
-        # Construct the chat history with system prompt
+        # Construct the context with system prompt
         system_prompt = get_system_prompt(level)
         
-        # Simple approach: Prepend system prompt to the latest message
-        # or use a chat session if we want to maintain context (stateless for now is easier)
+        # Build prompt from history
+        history_text = ""
+        for msg in history:
+            role = "User" if msg.get('role') == 'user' else "AI"
+            history_text += f"{role}: {msg.get('text')}\n"
         
-        full_prompt = f"{system_prompt}\n\nUser: {user_message}\nAI:"
+        full_prompt = f"{system_prompt}\n\n{history_text}User: {user_message}\nAI:"
         
         response = model.generate_content(full_prompt)
         return response.text

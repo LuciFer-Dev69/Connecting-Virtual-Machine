@@ -23,6 +23,7 @@ import CryptoChallenge from "./pages/CryptoChallenge";
 import ForensicsChallenge from "./pages/ForensicsChallenge";
 import ReverseChallenge from "./pages/ReverseChallenge";
 import MiscChallenge from "./pages/MiscChallenge";
+import LinuxChallenge from "./pages/LinuxChallenge";
 import ChakraTerminal from "./pages/ChakraTerminal";
 
 
@@ -91,6 +92,12 @@ function parseHash() {
     return { route: "misc-challenge", params: { level: level } };
   }
 
+  // Linux Challenge
+  if (parts[0] === "linux-challenge") {
+    const level = parts[1] ? parseInt(parts[1]) : 1;
+    return { route: "linux-challenge", params: { level: level } };
+  }
+
   // PwnBox / Bandit
   if (parts[0] === "pwnbox") return { route: "pwnbox" };
 
@@ -120,7 +127,7 @@ export default function App() {
   const isAdmin = user?.role === "admin";
 
   const protectedRoutes = [
-    "dashboard", "challenges", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "pwnbox", "about"
+    "dashboard", "challenges", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about"
   ];
 
   if (protectedRoutes.includes(route.route) && !isAuthed) {
@@ -160,6 +167,8 @@ export default function App() {
         return <ReverseChallenge level={route.params?.level} />;
       case "misc-challenge":
         return <MiscChallenge level={route.params?.level} />;
+      case "linux-challenge":
+        return <LinuxChallenge level={route.params?.level} />;
       case "pwnbox":
         return <ChakraTerminal />;
       case "admin":

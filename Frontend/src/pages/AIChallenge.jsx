@@ -85,13 +85,17 @@ export default function AIChallenge({ level }) {
     setIsLoading(true);
 
     try {
+      // Send the last 10 messages for context
+      const history = messages.slice(-10);
+
       const res = await fetch(`${API_BASE}/ai_chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: user.user_id,
           level: currentLevel,
-          message: input
+          message: input,
+          history: history
         })
       });
 
