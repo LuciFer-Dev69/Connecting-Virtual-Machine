@@ -22,7 +22,7 @@ def update_schema():
         print("Adding 'Reverse Engineering' and 'Misc' to category ENUM...")
         cursor.execute("""
             ALTER TABLE challenges 
-            MODIFY COLUMN category ENUM('Web', 'Cryptography', 'Forensics', 'Reverse', 'Reverse Engineering', 'AI', 'Misc')
+            MODIFY COLUMN category ENUM('Web', 'Cryptography', 'Forensics', 'Reverse', 'Reverse Engineering', 'AI', 'Misc', 'Linux')
         """)
 
         conn.commit()

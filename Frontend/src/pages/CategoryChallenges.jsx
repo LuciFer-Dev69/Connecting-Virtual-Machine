@@ -70,8 +70,7 @@ export default function CategoryChallenges({ category }) {
 
   const grouped = {};
   chals.forEach(c => {
-    if (!grouped[c.level]) grouped[c.level] = [];
-    grouped[c.level].push(c);
+    if (!grouped[c.level]) grouped[c.level] = c; // Store only first challenge per level
   });
 
   // ✅ IMPROVED LOGIC: Level unlocks if previous level has completed challenges
@@ -205,9 +204,9 @@ export default function CategoryChallenges({ category }) {
                           {levels[lvl]}
                         </h2>
 
-                        {grouped[lvl] && grouped[lvl].map(c => (
-                          <div key={c.id} style={{ marginTop: "10px" }}>
-                            <p style={{ color: "var(--muted)", marginBottom: "15px" }}>{c.description}</p>
+                        {grouped[lvl] ? (
+                          <div style={{ marginTop: "10px" }}>
+                            <p style={{ color: "var(--muted)", marginBottom: "15px" }}>{grouped[lvl].description}</p>
 
                             {locked ? (
                               <button disabled style={{
@@ -223,14 +222,14 @@ export default function CategoryChallenges({ category }) {
                             ) : (
                               <a
                                 href={
-                                  c.category === 'AI' ? `#/ai-challenge/${c.level}` :
-                                    c.category === 'Web' ? `#/web-challenge/${c.level}` :
-                                      c.category === 'Cryptography' ? `#/crypto-challenge/${c.level}` :
-                                        c.category === 'Forensics' ? `#/forensics-challenge/${c.level}` :
-                                          c.category === 'Reverse Engineering' ? `#/reverse-challenge/${c.level}` :
-                                            c.category === 'Misc' ? `#/misc-challenge/${c.level}` :
-                                              c.category === 'Linux' ? `#/linux-challenge/${c.level}` :
-                                                `#/challenge/${c.id}`
+                                  grouped[lvl].category === 'AI' ? `#/ai-challenge/${grouped[lvl].level}` :
+                                    grouped[lvl].category === 'Web' ? `#/web-challenge/${grouped[lvl].level}` :
+                                      grouped[lvl].category === 'Cryptography' ? `#/crypto-challenge/${grouped[lvl].level}` :
+                                        grouped[lvl].category === 'Forensics' ? `#/forensics-challenge/${grouped[lvl].level}` :
+                                          grouped[lvl].category === 'Reverse Engineering' ? `#/reverse-challenge/${grouped[lvl].level}` :
+                                            grouped[lvl].category === 'Misc' ? `#/misc-challenge/${grouped[lvl].level}` :
+                                              grouped[lvl].category === 'Linux' ? `#/linux-challenge/${grouped[lvl].level}` :
+                                                `#/challenge/${grouped[lvl].id}`
                                 }
                                 style={{
                                   display: "inline-block",
@@ -247,7 +246,7 @@ export default function CategoryChallenges({ category }) {
                               </a>
                             )}
                           </div>
-                        ))}
+                        ) : null}
                       </div>
                     </div>
                   </div>

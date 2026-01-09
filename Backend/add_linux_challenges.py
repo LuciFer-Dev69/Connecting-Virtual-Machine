@@ -32,39 +32,35 @@ def add_linux_challenges():
             """, (title, description, category, difficulty, level, flag, hint, points))
             print(f"✅ [{category}] Level {level}: {title}")
 
-        # Linux Category (Using 'Misc' or new 'Linux' if schema allows - using Misc/General for compatibility or repurposing PwnBox specific category if UI handles it. Plan said 'Linux' category, let's stick to Misc or check schema. Schema has ENUM... need to check ENUM or just use Misc)
-        # Re-checking schema: category ENUM('Web', 'Cryptography', 'Forensics', 'Reverse', 'Reverse Engineering', 'AI', 'Misc')
-        # I must use 'Misc' or update SCHEMA. Updating schema is risky in live reload. I will use 'Misc' but prefix titles with [Linux]. 
-        # Actually, let's use 'Misc' for now as "General Skills".
-        
-        CATEGORY = "Misc"
+        # Linux Category (Using 'Linux' after schema update)
+        CATEGORY = "Linux"
 
         # Level 1: Hidden Files
         upsert_challenge(
             "Linux - Hidden Files",
             "There is a hidden file in the home directory. Find it and cat it.",
-            CATEGORY, 3, "flag{linux_hidden_files_found}", "Use 'ls -la' to see hidden files starting with dot.", 100, "Easy"
+            CATEGORY, 1, "flag{linux_hidden_files_found}", "Use 'ls -la' to see hidden files starting with dot.", 100, "Easy"
         )
 
         # Level 2: Grep Master
         upsert_challenge(
             "Linux - Grep Master",
             "A flag is buried deep inside 'server_logs.txt'. Find the line containing 'CRITICAL'.",
-            CATEGORY, 4, "flag{grep_is_your_friend_123}", "Use grep to search for patterns: 'grep CRITICAL filename'", 150, "Medium"
+            CATEGORY, 2, "flag{grep_is_your_friend_123}", "Use grep to search for patterns: 'grep CRITICAL filename'", 150, "Medium"
         )
 
         # Level 3: Base64
         upsert_challenge(
             "Linux - Encoding",
             "Decrypt the content of 'secrets.b64'. It is encoded in Base64.",
-            CATEGORY, 5, "flag{base64_encoding_is_not_encryption}", "Use the 'base64 -d' command.", 200, "Medium"
+            CATEGORY, 3, "flag{base64_encoding_is_not_encryption}", "Use the 'base64 -d' command.", 200, "Medium"
         )
 
         # Level 4: Sudo
         upsert_challenge(
             "Linux - Root Privilege",
             "Read the content of 'root_only.txt'. It requires root privileges.",
-            CATEGORY, 6, "flag{sudo_make_me_a_sandwich}", "Use 'sudo cat filename'. Checking sudo -l might help.", 300, "Hard"
+            CATEGORY, 4, "flag{sudo_make_me_a_sandwich}", "Use 'sudo cat filename'. Checking sudo -l might help.", 300, "Hard"
         )
         
         conn.commit()

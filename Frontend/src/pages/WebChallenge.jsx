@@ -4,7 +4,7 @@ import Sidebar from "../components/Sidebar";
 import { API_BASE } from "../config";
 import ChallengeHint from "../components/ChallengeHint";
 import WebTerminal from "../components/WebTerminal";
-import { Terminal as TerminalIcon, Award, ChevronRight } from "lucide-react";
+import { Terminal as TerminalIcon, Award } from "lucide-react";
 
 export default function WebChallenge({ level }) {
     const [currentLevel, setCurrentLevel] = useState(level || 1);
