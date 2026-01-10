@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerable Blog</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .comment { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .search-box { margin-bottom: 20px; padding: 10px; background: #e9ecef; border-radius: 4px; }
+        input[type="text"], textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Awesome Blog</h1>
+        
+        <div class="search-box">
+            <form action="/" method="GET">
+                <input type="text" name="q" placeholder="Search posts..." value="">
+                <button type="submit">Search</button>
+            </form>
+            
+            <% if (query) { %>
+                <!-- VULNERABLE: Outputting raw HTML -->
+                <p>You searched for: <%- query %></p>
+            <% } %>
+        </div>
+
+        <h2>Comments</h2>
+        <% comments.forEach(function(comment) { %>
+            <div class="comment">
+                <!-- VULNERABLE: Outputting raw HTML -->
+                <%- comment %>
+            </div>
+        <% }); %>
+
+        <h3>Leave a Comment</h3>
+        <form action="/comment" method="POST">
+            <textarea name="comment" rows="4" placeholder="Write something..."></textarea>
+            <button type="submit">Post Comment</button>
+        </form>
+    </div>
+</body>
+</html>

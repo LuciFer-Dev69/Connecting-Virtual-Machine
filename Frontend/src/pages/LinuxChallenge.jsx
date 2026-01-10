@@ -61,7 +61,7 @@ export default function LinuxChallenge({ level }) {
     };
 
     const nextLevel = () => {
-        if (currentLevel < 8) {
+        if (currentLevel < 9) {
             setCurrentLevel(currentLevel + 1);
             setFlag("");
             setMessage("");

@@ -1,0 +1,15 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Initialize DB on build (for simplicity in this isolated container)
+RUN python init_db.py
+
+EXPOSE 80
+
+CMD ["python", "app.py"]

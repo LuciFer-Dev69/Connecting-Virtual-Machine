@@ -210,88 +210,9 @@ def add_missing_challenges():
         conn.commit()
 
         # --- LINUX CHALLENGES ---
-        print("Adding Linux challenges...")
+        # print("Adding Linux challenges...")
+        # REMOVED: Using add_linux_curriculum.py instead to avoid conflicts and ensure a proper Bandit-style progression.
         
-        # Level 1: SSH Intro
-        cursor.execute("""
-            INSERT INTO challenges (title, description, category, level, flag, hint, points)
-            VALUES (
-                'SSH Connection',
-                'Connect to the PwnBox using the Web Terminal or your own terminal. The credentials are usually provided. Flag is in the home directory.',
-                'Linux',
-                1,
-                'flag{ssh_connected_success}',
-                'Use ssh user@host -p port',
-                100
-            )
-            ON DUPLICATE KEY UPDATE
-                title = VALUES(title),
-                description = VALUES(description),
-                category = VALUES(category),
-                flag = VALUES(flag),
-                hint = VALUES(hint)
-        """)
-
-        # Level 2: Hidden Files
-        cursor.execute("""
-            INSERT INTO challenges (title, description, category, level, flag, hint, points)
-            VALUES (
-                'Hidden in Plain Sight',
-                'There is a file starting with a dot (.) in the home directory. Read it.',
-                'Linux',
-                2,
-                'flag{dot_files_are_hidden}',
-                'Use ls -la to see hidden files.',
-                200
-            )
-            ON DUPLICATE KEY UPDATE
-                title = VALUES(title),
-                description = VALUES(description),
-                category = VALUES(category),
-                flag = VALUES(flag),
-                hint = VALUES(hint)
-        """)
-
-        # Level 3: Grep
-        cursor.execute("""
-            INSERT INTO challenges (title, description, category, level, flag, hint, points)
-            VALUES (
-                'Needle in a Haystack',
-                'Search for the string "password" inside the file "large_log.txt".',
-                'Linux',
-                3,
-                'flag{grep_is_powerful}',
-                'Use grep "search_term" filename',
-                300
-            )
-            ON DUPLICATE KEY UPDATE
-                title = VALUES(title),
-                description = VALUES(description),
-                category = VALUES(category),
-                flag = VALUES(flag),
-                hint = VALUES(hint)
-        """)
-        
-        # Level 4: Permissions
-        cursor.execute("""
-            INSERT INTO challenges (title, description, category, level, flag, hint, points)
-            VALUES (
-                'Permission Denied',
-                'There is a script "run_me.sh" that is not executable. Make it executable and run it.',
-                'Linux',
-                4,
-                'flag{chmod_executable}',
-                'Use chmod +x filename',
-                400
-            )
-            ON DUPLICATE KEY UPDATE
-                title = VALUES(title),
-                description = VALUES(description),
-                category = VALUES(category),
-                flag = VALUES(flag),
-                hint = VALUES(hint)
-        """)
-
         conn.commit()
 
         print("✅ All missing challenges added successfully!")

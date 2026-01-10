@@ -50,7 +50,7 @@ def init_db():
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
             description TEXT,
-            category ENUM('Web', 'Cryptography', 'Forensics', 'Reverse', 'Reverse Engineering', 'AI', 'Misc'),
+            category ENUM('Web', 'Cryptography', 'Forensics', 'Reverse', 'Reverse Engineering', 'AI', 'Misc', 'Linux'),
             difficulty ENUM('Easy', 'Medium', 'Hard'),
             level INT,
             flag VARCHAR(255),
@@ -98,6 +98,42 @@ def init_db():
         """)
         
         print("Tables initialized.")
+        print("Tables initialized.")
+
+        # Real-Life Web Challenges Table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS real_life_challenges (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            difficulty ENUM('Easy', 'Medium', 'Hard'),
+            category VARCHAR(50),
+            points INT,
+            flag VARCHAR(255),
+            docker_image VARCHAR(255),
+            port INT,
+            hints JSON,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
+        # Real-Life Challenge Sessions Table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS real_life_challenge_sessions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT,
+            challenge_id INT,
+            status ENUM('active', 'completed', 'stopped') DEFAULT 'active',
+            container_id VARCHAR(255),
+            assigned_port INT,
+            started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            completed_at TIMESTAMP NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (challenge_id) REFERENCES real_life_challenges(id)
+        )
+        """)
+
+        conn.commit()
         conn.close()
 
     except Exception as e:

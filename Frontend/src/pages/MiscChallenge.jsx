@@ -156,7 +156,7 @@ export default function MiscChallenge({ level }) {
     };
 
     const nextLevel = () => {
-        if (currentLevel < 5) {
+        if (currentLevel < 6) {
             setCurrentLevel(currentLevel + 1);
             setFlag("");
             setManualFlag("");

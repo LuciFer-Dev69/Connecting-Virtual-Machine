@@ -33,32 +33,32 @@ def add_linux_challenges():
 
         C = "Linux"
 
-        # Level 0
+        # Level 1
         upsert("Readme", "The password for the next level is stored in a file called readme located in the home directory.", C, 1, "flag{linux_readme_done}", "Use the 'cat' command.", 100, "Easy")
         
-        # Level 1
-        upsert("Dashed Filename", "The password is in a file located in the home directory named - (dash).", C, 1, "flag{dash_filename_redirection}", "Use ./- or cat < -", 100, "Easy")
-
         # Level 2
-        upsert("Spaces in Name", "The password is in a file called 'spaces in this filename' located in the home directory.", C, 2, "flag{spaces_are_tricky}", "Use quotes or backslash escape.", 200, "Easy")
+        upsert("Dashed Filename", "The password is in a file located in the home directory named - (dash).", C, 2, "flag{dash_filename_redirection}", "Use ./- or cat < -", 100, "Easy")
 
         # Level 3
-        upsert("Hidden File", "The password is in a hidden file in the 'inhere' directory.", C, 2, "flag{hidden_dot_files}", "ls -la is your friend.", 200, "Easy")
+        upsert("Spaces in Name", "The password is in a file called 'spaces in this filename' located in the home directory.", C, 3, "flag{spaces_are_tricky}", "Use quotes or backslash escape.", 200, "Easy")
 
         # Level 4
-        upsert("Human Readable", "The password is in the 'inhere' directory, but only in the only human-readable file.", C, 3, "flag{file_type_human_readable}", "Use 'file *' command.", 300, "Medium")
+        upsert("Hidden File", "The password is in a hidden file in the 'inhere' directory.", C, 4, "flag{hidden_dot_files}", "ls -la is your friend.", 200, "Easy")
 
         # Level 5
-        upsert("Find by Size", "The password is in 'inhere' directory, size is exactly 1033 bytes.", C, 3, "flag{find_size_1033}", "find . -size 1033c", 300, "Medium")
+        upsert("Human Readable", "The password is in the 'inhere' directory, but only in the only human-readable file.", C, 5, "flag{file_type_human_readable}", "Use 'file *' command.", 300, "Medium")
 
         # Level 6
-        upsert("Find by Owner", "The file is somewhere on the system, owned by user 'bandit7' and group 'bandit6', size 33 bytes.", C, 4, "flag{find_user_group_size}", "find / -user bandit7 -group bandit6", 400, "Hard")
+        upsert("Find by Size", "The password is in 'inhere' directory, size is exactly 1033 bytes.", C, 6, "flag{find_size_1033}", "find . -size 1033c", 300, "Medium")
 
         # Level 7
-        upsert("Grep Master", "The password is in 'data.txt' next to the word 'millionth'.", C, 5, "flag{grep_is_powerful_tool}", "grep 'millionth' data.txt", 500, "Hard")
+        upsert("Find by Owner", "The file is somewhere on the system, owned by user 'bandit7' and group 'bandit6', size 33 bytes.", C, 7, "flag{find_user_group_size}", "find / -user bandit7 -group bandit6", 400, "Hard")
 
         # Level 8
-        upsert("Base64 Decode", "The password in 'data.txt' is encoded multiple times to avoid detection.", C, 5, "flag{base64_multistep_decode}", "base64 -d", 500, "Hard")
+        upsert("Grep Master", "The password is in 'data.txt' next to the word 'millionth'.", C, 8, "flag{grep_is_powerful_tool}", "grep 'millionth' data.txt", 500, "Hard")
+
+        # Level 9
+        upsert("Base64 Decode", "The password in 'data.txt' is encoded multiple times to avoid detection.", C, 9, "flag{base64_multistep_decode}", "base64 -d", 500, "Hard")
 
         conn.commit()
         print("\n🎉 Linux Curriculum added successfully!")

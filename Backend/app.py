@@ -19,8 +19,12 @@ from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 # Initialize SocketIO with CORS allowed
+# Initialize SocketIO with CORS allowed
 socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
+
+from routes.real_life_challenges import real_life_bp
+app.register_blueprint(real_life_bp)
 
 # Database connection pool
 db_config = {

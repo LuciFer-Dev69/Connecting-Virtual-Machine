@@ -25,6 +25,12 @@ import ReverseChallenge from "./pages/ReverseChallenge";
 import MiscChallenge from "./pages/MiscChallenge";
 import LinuxChallenge from "./pages/LinuxChallenge";
 import ChakraTerminal from "./pages/ChakraTerminal";
+import RealLifeChallenges from "./pages/RealLifeChallenges";
+import RealLifeChallenge from "./pages/RealLifeChallenge";
+import XSSChallenge from "./pages/XSSChallenge";
+import UploadChallenge from "./pages/UploadChallenge";
+import SQLiChallenge from "./pages/SQLiChallenge";
+import BusinessLogicChallenge from "./pages/BusinessLogicChallenge";
 
 
 
@@ -40,6 +46,9 @@ function parseHash() {
   if (parts[0] === "dashboard") return { route: "dashboard" };
   if (parts[0] === "about") return { route: "about" };
 
+  if (parts[0] === "challenges" && parts[1] === "XSS") {
+    return { route: "xss-challenge" };
+  }
   if (parts[0] === "challenges" && parts[1]) {
     return { route: "category", params: { category: decodeURIComponent(parts[1]) } };
   }
@@ -101,6 +110,24 @@ function parseHash() {
   // PwnBox / Bandit
   if (parts[0] === "pwnbox") return { route: "pwnbox" };
 
+  // Real-Life Challenges
+  if (parts[0] === "real-life-challenges" && parts[1]) {
+    return { route: "real-life-challenge", params: { id: parts[1] } };
+  }
+  if (parts[0] === "real-life-challenges") return { route: "real-life-challenges" };
+
+  // XSS Challenge
+  if (parts[0] === "xss-challenge") return { route: "xss-challenge" };
+
+  // File Upload Challenge
+  if (parts[0] === "upload-challenge") return { route: "upload-challenge" };
+
+  // SQLi Challenge
+  if (parts[0] === "sqli-challenge") return { route: "sqli-challenge" };
+
+  // Business Logic Challenge
+  if (parts[0] === "logic-challenge") return { route: "logic-challenge" };
+
   if (parts[0] === "admin") return { route: "admin" };
 
   return { route: "landing" };
@@ -127,7 +154,7 @@ export default function App() {
   const isAdmin = user?.role === "admin";
 
   const protectedRoutes = [
-    "dashboard", "challenges", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about"
+    "dashboard", "challenges", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge"
   ];
 
   if (protectedRoutes.includes(route.route) && !isAuthed) {
@@ -171,6 +198,18 @@ export default function App() {
         return <LinuxChallenge level={route.params?.level} />;
       case "pwnbox":
         return <ChakraTerminal />;
+      case "real-life-challenges":
+        return <RealLifeChallenges />;
+      case "real-life-challenge":
+        return <RealLifeChallenge id={route.params?.id} />;
+      case "xss-challenge":
+        return <XSSChallenge />;
+      case "upload-challenge":
+        return <UploadChallenge />;
+      case "sqli-challenge":
+        return <SQLiChallenge />;
+      case "logic-challenge":
+        return <BusinessLogicChallenge />;
       case "admin":
         if (!isAdmin) {
           window.location.hash = "#/dashboard";

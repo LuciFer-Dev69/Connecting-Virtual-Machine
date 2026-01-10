@@ -19,7 +19,15 @@ RUN apt-get update || (sleep 5 && apt-get update) && \
     python3-pip \
     netcat \
     git \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages for Phantom Shop
+RUN pip3 install flask
+
+# Install Node.js packages globally
+RUN npm install -g express body-parser
 
 # Setup SSH
 RUN mkdir /var/run/sshd
@@ -45,6 +53,15 @@ RUN chown chakra:chakra -
 RUN echo "Welcome to Chakra PwnBox!\n\nLevel 1 Goal: Read the file named '-'.\n" > README.txt
 RUN chown chakra:chakra README.txt
 
+# Copy Phantom Shop services
+COPY phantom-shop /opt/phantom-shop
+RUN chmod +x /opt/phantom-shop/start-services.sh
+
+# Create startup script that runs SSH and Phantom Shop
+RUN echo '#!/bin/bash\n\
+    /opt/phantom-shop/start-services.sh &\n\
+    /usr/sbin/sshd -D' > /start.sh && chmod +x /start.sh
+
 EXPOSE 22
 
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/start.sh"]

@@ -61,11 +61,16 @@ export default function CategoryChallenges({ category }) {
   };
 
   const levels = {
-    1: "Level 1 - Tutorials",
-    2: "Level 2 - Easy",
-    3: "Level 3 - Medium",
-    4: "Level 4 - Hard",
-    5: "Level 5 - Insane"
+    1: "Level 1 - Introduction",
+    2: "Level 2 - Basics",
+    3: "Level 3 - Beginner",
+    4: "Level 4 - Intermediate",
+    5: "Level 5 - Advanced",
+    6: "Level 6 - Expert",
+    7: "Level 7 - Master",
+    8: "Level 8 - Grandmaster",
+    9: "Level 9 - Legend",
+    10: "Level 10 - God"
   };
 
   const grouped = {};

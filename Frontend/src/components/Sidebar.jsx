@@ -5,7 +5,8 @@ export default function Sidebar({ active }) {
   const items = [
     { name: "Dashboard", key: "dashboard", icon: LayoutDashboard },
     { name: "Challenges", key: "challenges", icon: Target },
-    { name: "PwnBox", key: "pwnbox", icon: Terminal },
+    { name: "Real-Life Web", key: "real-life-challenges", icon: Shield, path: "#/real-life-challenges" },
+    { name: "PwnBox", key: "pwnbox", icon: Terminal, path: "#/pwnbox" },
     { name: "Tutorials", key: "tutorials", icon: BookOpen },
     { name: "Lessons", key: "lessons", icon: GraduationCap },
     { name: "Profile", key: "profile", icon: User },
@@ -14,6 +15,7 @@ export default function Sidebar({ active }) {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   let finalItems = items;
+  /*
   if (user.role === "admin") {
     // For admin, only show Dashboard, Profile, and Admin Panel
     finalItems = [
@@ -22,6 +24,7 @@ export default function Sidebar({ active }) {
       { name: "Admin Panel", key: "admin", icon: Shield }
     ];
   }
+  */
 
   return (
     <aside style={{ width: "220px", background: "var(--sidebar-bg)", color: "var(--text)", padding: "20px", minHeight: "100vh", borderRight: "1px solid var(--card-border)" }}>
