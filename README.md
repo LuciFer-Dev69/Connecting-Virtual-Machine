@@ -12,7 +12,7 @@ Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/
 ```bash
 # Clone and enter directory
 git clone https://github.com/LuciFer-Dev69/Connecting-Virtual-Machine.git
-cd Final-YearProject-CTF-
+cd Connecting-Virtual-Machine
 
 # Configure Gemini AI (Optional but recommended for hints)
 echo "GEMINI_API_KEY=your_key_here" > Backend/.env
@@ -35,8 +35,10 @@ These labs are hosted inside the `chakra_pwnbox` container and are accessible th
 | :--- | :--- | :--- |
 | **Phantom Login (XSS)** | `5050` | Reflected XSS & Session Hijacking. |
 | **Phantom Profile** | `6060` | File Upload Misconfiguration & RCE. |
-| **Phantom Login (SQLi)**| `7071` | Authentication Bypass via SQL Injection. |
-| **PHANTOM.TECH** | `9090` | **Hardest:** Business Logic & Price Tampering. |
+| **Phantom Login (SQLi)** | `7071` | Authentication Bypass via SQL Injection. |
+| **PHANTOM.TECH** | `9090` | **Level: Advanced** - Business Logic & Price Tampering. |
+| **SQLi Login Lab** | `3003` | Classic SQLi on a simplified login portal. |
+| **Auth API Lab** | `3004` | API-based authentication vulnerabilities. |
 
 ---
 

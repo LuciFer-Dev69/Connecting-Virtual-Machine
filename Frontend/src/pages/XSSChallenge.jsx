@@ -15,7 +15,7 @@ export default function XSSChallenge() {
 
     const submitFlag = async (e) => {
         e.preventDefault();
-        const correctFlag = "FLAG{phantom_sqli_bypass_2024}";
+        const correctFlag = "IHACKEDIT";
 
         if (flag.trim() === correctFlag) {
             setMessage("🎉 Correct Flag! Well done.");
@@ -195,16 +195,16 @@ export default function XSSChallenge() {
                                             fontFamily: "monospace"
                                         }}>
                                             curl -X POST http://localhost:5050/login \<br />
-                                            -d "username=&lt;script&gt;alert('XSS_SUCCESS')&lt;/script&gt;&password=any"
+                                            -d "username=&lt;script&gt;alert(document.cookie)&lt;/script&gt;&password=any"
                                         </code>
                                     </div>
 
                                     <div style={{ marginBottom: "15px" }}>
                                         <strong style={{ color: "var(--text)", display: "block" }}>Step 3: What Happens</strong>
                                         <ul style={{ margin: "5px 0", paddingLeft: "18px" }}>
-                                            <li>The server reflects the username back in the response</li>
+                                            <li>The server reflects the payload back in the response</li>
                                             <li>The browser interprets the injected <code style={{ color: "var(--cyan)" }}>&lt;script&gt;</code> tag</li>
-                                            <li>A JavaScript alert box appears with the message: <code style={{ color: "var(--cyan)" }}>XSS_SUCCESS</code></li>
+                                            <li>A JavaScript alert box appears revealing the hidden **Level Flag**: <code style={{ color: "var(--cyan)" }}>IHACKEDIT</code></li>
                                         </ul>
                                         <p style={{ margin: "5px 0", fontStyle: "italic" }}>This confirms successful JavaScript execution, proving a Reflected XSS vulnerability.</p>
                                     </div>
@@ -214,9 +214,9 @@ export default function XSSChallenge() {
                                         <p style={{ margin: "5px 0" }}>For a clearer demonstration:</p>
                                         <ul style={{ margin: "5px 0", paddingLeft: "18px" }}>
                                             <li>Open the site in the <strong>Web View</strong> tab</li>
-                                            <li>Enter the following into the username field: <code style={{ color: "var(--cyan)" }}>&lt;script&gt;alert('XSS_SUCCESS')&lt;/script&gt;</code></li>
+                                            <li>Enter the following into the username field: <code style={{ color: "var(--cyan)" }}>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code></li>
                                             <li>Submit the form</li>
-                                            <li>Observe the alert popup</li>
+                                            <li>Observe the alert popup containing the **Level Flag**</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -302,7 +302,7 @@ export default function XSSChallenge() {
                                     border: "1px solid var(--card-border)",
                                     borderRadius: "12px",
                                     overflow: "hidden",
-                                    height: "calc(100vh - 250px)",
+                                    height: "calc(100vh - 180px)",
                                     position: "relative"
                                 }}>
                                     {activeTab === "terminal" ? (

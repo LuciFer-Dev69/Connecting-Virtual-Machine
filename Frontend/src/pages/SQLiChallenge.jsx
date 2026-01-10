@@ -252,7 +252,7 @@ export default function SQLiChallenge() {
                                     border: "1px solid var(--card-border)",
                                     borderRadius: "12px",
                                     overflow: "hidden",
-                                    height: "calc(100vh - 250px)",
+                                    height: "calc(100vh - 180px)",
                                     position: "relative"
                                 }}>
                                     {activeTab === "terminal" ? (

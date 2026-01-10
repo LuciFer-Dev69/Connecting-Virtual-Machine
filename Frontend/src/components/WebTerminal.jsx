@@ -22,12 +22,20 @@ const WebTerminal = ({ host, user, onExit }) => {
             },
             fontFamily: "'Fira Code', monospace",
             fontSize: 14,
-            convertEol: true
+            convertEol: true,
+            scrollback: 5000,
+            allowProposedApi: true
         });
         const fitAddon = new FitAddon();
         term.loadAddon(fitAddon);
         term.open(terminalRef.current);
-        fitAddon.fit();
+
+        // Ensure fit happens after opening and slightly delayed to catch container growth
+        setTimeout(() => {
+            fitAddon.fit();
+            term.focus();
+        }, 100);
+
         termRef.current = term;
 
         // Socket.io connection
@@ -82,11 +90,8 @@ const WebTerminal = ({ host, user, onExit }) => {
         <div
             ref={terminalRef}
             style={{
-                height: "500px",
+                height: "100%",
                 width: "100%",
-                borderRadius: "8px",
-                overflow: "hidden",
-                border: "1px solid #333",
                 background: "#0d0d0d"
             }}
         />

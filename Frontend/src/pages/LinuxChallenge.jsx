@@ -204,7 +204,7 @@ export default function LinuxChallenge({ level }) {
                                 borderRadius: "12px",
                                 border: "1px solid #333",
                                 overflow: "hidden",
-                                height: "600px",
+                                height: "calc(100vh - 180px)",
                                 display: "flex",
                                 flexDirection: "column",
                                 animation: "fadeIn 0.5s ease"

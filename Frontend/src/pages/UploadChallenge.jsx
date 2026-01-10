@@ -168,6 +168,24 @@ export default function UploadChallenge() {
                                 )}
                             </div>
 
+                            <style>{`
+                                .xterm-viewport::-webkit-scrollbar {
+                                    width: 10px;
+                                    height: 10px;
+                                }
+                                .xterm-viewport::-webkit-scrollbar-track {
+                                    background: #0d0d0d;
+                                }
+                                .xterm-viewport::-webkit-scrollbar-thumb {
+                                    background: #333;
+                                    border-radius: 5px;
+                                    border: 2px solid #0d0d0d;
+                                }
+                                .xterm-viewport::-webkit-scrollbar-thumb:hover {
+                                    background: #444;
+                                }
+                            `}</style>
+
                             {/* Teacher Demo Card */}
                             <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "12px", padding: "20px" }}>
                                 <h3 style={{ fontSize: "14px", fontWeight: "700", color: "#ff0066", marginBottom: "12px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -243,7 +261,7 @@ export default function UploadChallenge() {
                                     border: "1px solid var(--card-border)",
                                     borderRadius: "12px",
                                     overflow: "hidden",
-                                    height: "calc(100vh - 250px)",
+                                    height: "calc(100vh - 180px)",
                                     position: "relative"
                                 }}>
                                     {activeTab === "terminal" ? (

@@ -44,6 +44,8 @@ const HTML_LOGIN = `
 `;
 
 app.get('/', (req, res) => {
+    // Set the secret flag in a cookie for the student to "steal" via XSS
+    res.cookie('flag', 'XSS IS COMPLETE AND YOUR FLAG IS : IHACKEDIT', { path: '/' });
     res.send(HTML_LOGIN);
 });
 
@@ -58,17 +60,15 @@ app.post('/login', (req, res) => {
         <title>Access Granted</title>
         <style>
             body { font-family: monospace; background: #0a0a0a; color: #00ff00; padding: 50px; text-align: center; }
-            .msg { font-size: 24px; border: 1px solid #00ff00; padding: 40px; border-radius: 12px; background: #111; display: inline-block; }
-            .flag { margin-top: 30px; color: #ff0066; font-weight: bold; }
+            .msg { font-size: 24px; border: 1px solid #00ff00; padding: 40px; border-radius: 12px; background: #111; display: inline-block; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
+            .status { margin-top: 30px; color: #ff0000; font-weight: bold; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,0,0,0.5); }
         </style>
     </head>
     <body>
         <div class="msg">
-            Welcome back, ${username}!
-            <br><br>
-            <div class="flag">System Status: SECURE</div>
+            <div class="status">System Status: SYSTEM_UNSECURE</div>
         </div>
-        <p><a href="/" style="color: #444;">Logout</a></p>
+        <p><a href="/" style="color: #444; text-decoration: none;">[ LOGOUT ]</a></p>
     </body>
     </html>
     `;

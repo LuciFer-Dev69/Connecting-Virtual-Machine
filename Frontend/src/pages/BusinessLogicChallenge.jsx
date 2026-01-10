@@ -179,7 +179,7 @@ export default function BusinessLogicChallenge() {
                                             <strong>Identify the Vulnerability:</strong> In the Network list, look for a red or yellow <code>POST</code> request named <code>checkout</code>. Click it, then click <strong>Payload</strong> or <strong>Request</strong>. See the <code>"price": 220</code>?
                                         </li>
                                         <li style={{ marginBottom: "8px" }}>
-                                            <strong>The Breach:</strong> The server doesn't verify this price. Switch to the <code>Terminal</code> tab and use the <code>curl</code> command from the Teacher Demonstration below, but change the price to <code>1</code>.
+                                            <strong>Audit the Breach:</strong> After sending the command, scroll to the bottom of the Shop page. You will see the <strong>SECURE_TRANSACTION_AUDIT_LOG</strong>. It will show your product and the <code>1$</code> price with a bright red <code>[PRICE_BREACH]</code> status—proving the server accepted the fake price!
                                         </li>
                                     </ol>
                                 </div>
@@ -207,16 +207,19 @@ export default function BusinessLogicChallenge() {
                                     <ShoppingCart size={16} /> 🧪 Teacher Demonstration
                                 </h3>
                                 <div style={{ fontSize: "13px", color: "var(--muted)", lineHeight: "1.6" }}>
-                                    <p>Demonstrate why client-side trust is a critical business risk:</p>
+                                    <p>Use this to prove the vulnerability applies to <strong>any</strong> item in the catalog:</p>
                                     <ol style={{ paddingLeft: "20px", margin: "10px 0" }}>
-                                        <li>Add a **Smart Watch** ($150) to the cart.</li>
-                                        <li>Instead of standard checkout, use the terminal to send the manipulated request.</li>
+                                        <li>Identify any Product ID/Name (e.g., <strong>ZenBuds Pro</strong>).</li>
+                                        <li>Use the <code>curl</code> command below to send a custom price directly to the backend.</li>
+                                        <li><strong>Visualize the Risk:</strong> Point the class to the <strong>Live Audit Log</strong> at the bottom of the shop to see the server's blind trust in action.</li>
                                     </ol>
                                     <div style={{ background: "var(--input-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--card-border)", marginTop: "10px" }}>
-                                        <p style={{ margin: "0 0 5px 0", fontSize: "11px" }}>Exploit command:</p>
-                                        <code style={{ fontSize: "11px", color: "var(--cyan)" }}>{'curl -X POST http://localhost:9090/checkout -H "Content-Type: application/json" -d \'{"product":"Smart Watch", "price":1, "quantity":1}\''}</code>
+                                        <p style={{ margin: "0 0 5px 0", fontSize: "11px", color: "var(--accent)" }}>Product-Agnostic Exploit:</p>
+                                        <code style={{ fontSize: "11px", color: "var(--cyan)", wordBreak: "break-all" }}>
+                                            {'curl -X POST http://localhost:9090/checkout -H "Content-Type: application/json" -d \'{"product":"ANY_PRODUCT_NAME", "price":1, "quantity":1}\''}
+                                        </code>
                                     </div>
-                                    <p style={{ fontSize: "12px", color: "#ffa500", marginTop: "10px" }}>💡 This maps to OWASP A04: Insecure Design.</p>
+                                    <p style={{ fontSize: "12px", color: "#ffa500", marginTop: "10px" }}>💡 Pro-Tip: Show students that the server never checks its own database for the true price.</p>
                                 </div>
                             </div>
 
@@ -277,7 +280,7 @@ export default function BusinessLogicChallenge() {
                                     border: "1px solid var(--card-border)",
                                     borderRadius: "12px",
                                     overflow: "hidden",
-                                    height: "calc(100vh - 250px)",
+                                    height: "calc(100vh - 180px)",
                                     position: "relative"
                                 }}>
                                     {activeTab === "terminal" ? (

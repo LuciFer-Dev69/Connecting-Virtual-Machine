@@ -31,6 +31,7 @@ import XSSChallenge from "./pages/XSSChallenge";
 import UploadChallenge from "./pages/UploadChallenge";
 import SQLiChallenge from "./pages/SQLiChallenge";
 import BusinessLogicChallenge from "./pages/BusinessLogicChallenge";
+import DefensiveChallenge from "./pages/DefensiveChallenge";
 
 
 
@@ -128,6 +129,12 @@ function parseHash() {
   // Business Logic Challenge
   if (parts[0] === "logic-challenge") return { route: "logic-challenge" };
 
+  // Blue Team / Defensive Challenges
+  if (parts[0] === "defensive-challenge") {
+    const id = parts[1] ? parseInt(parts[1]) : 1;
+    return { route: "defensive-challenge", params: { id } };
+  }
+
   if (parts[0] === "admin") return { route: "admin" };
 
   return { route: "landing" };
@@ -154,7 +161,7 @@ export default function App() {
   const isAdmin = user?.role === "admin";
 
   const protectedRoutes = [
-    "dashboard", "challenges", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge"
+    "dashboard", "challenges", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge", "defensive-challenge"
   ];
 
   if (protectedRoutes.includes(route.route) && !isAuthed) {
@@ -210,6 +217,8 @@ export default function App() {
         return <SQLiChallenge />;
       case "logic-challenge":
         return <BusinessLogicChallenge />;
+      case "defensive-challenge":
+        return <DefensiveChallenge id={route.params?.id} />;
       case "admin":
         if (!isAdmin) {
           window.location.hash = "#/dashboard";

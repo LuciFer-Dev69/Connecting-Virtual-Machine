@@ -47,7 +47,8 @@ export default function ChakraTerminal() {
                             border: "1px solid #333",
                             borderRadius: "8px",
                             overflow: "hidden",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.5)"
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                            height: "calc(100vh - 250px)"
                         }}>
                             <WebTerminal
                                 host="192.168.81.134"

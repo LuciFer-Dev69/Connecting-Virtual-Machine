@@ -3,231 +3,280 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { API_BASE } from "../config";
 import {
-  Globe,
-  Lock,
-  Search,
-  Cpu,
-  Bot,
-  Box,
-  Trophy,
-  Target,
-  Terminal
+  Target, Shield, Zap, Search, ChevronRight, FileUp,
+  ShoppingCart, Eye, Activity, FileSearch, ShieldAlert,
+  Terminal, Lock, CheckCircle2, ArrowLeft, Trophy
 } from "lucide-react";
 
-const categories = [
-  {
-    name: "Web Exploitation",
-    key: "Web",
-    icon: Globe,
-    description: "Discover and exploit vulnerabilities in web applications.",
-    learn: "SQL Injection, XSS, CSRF, IDOR",
-    color: "#00d4ff",
-    difficulty: "Beginner"
-  },
-  {
-    name: "Cryptography",
-    key: "Cryptography",
-    icon: Lock,
-    description: "Analyze and break encryption schemes to reveal secrets.",
-    learn: "Ciphers, Hashing, RSA, Encoding",
-    color: "#ff6b6b",
-    difficulty: "Beginner"
-  },
-  {
-    name: "Forensics",
-    key: "Forensics",
-    icon: Search,
-    description: "Investigate digital evidence and recover hidden data.",
-    learn: "File Analysis, Steganography, Metadata",
-    color: "#51cf66",
-    difficulty: "Intermediate"
-  },
-  {
-    name: "Reverse Engineering",
-    key: "Reverse Engineering",
-    icon: Cpu,
-    description: "Decompile and analyze binary programs to understand logic.",
-    learn: "Assembly, Debugging, Decompilation",
-    color: "#ffd43b",
-    difficulty: "Intermediate"
-  },
-  {
-    name: "AI / Prompt Injection",
-    key: "AI",
-    icon: Bot,
-    description: "Manipulate AI models to bypass safety controls.",
-    learn: "Prompt Injection, Jailbreaking, LLM Attacks",
-    color: "#a78bfa",
-    difficulty: "Advanced"
-  },
-  {
-    name: "Linux / Bandit",
-    key: "Linux",
-    icon: Terminal,
-    description: "Master the Linux command line. Essential skills for any hacker.",
-    learn: "Bash, Permissions, Pipes, SSH",
-    color: "#e8590c",
-    difficulty: "Beginner"
-  },
-  {
-    name: "Misc / General",
-    key: "Misc",
-    icon: Box,
-    description: "Solve unique puzzles and test general security knowledge.",
-    learn: "OSINT, Scripting, Logic Puzzles",
-    color: "#ff922b",
-    difficulty: "Advanced"
-  }
-];
-
 export default function Challenges() {
-  const [stats, setStats] = useState({
-    challengesCompleted: 0,
-    points: 0,
-    streak: 0
-  });
+  const [view, setView] = useState("selection"); // "selection", "red-roadmap", "blue-roadmap"
+  const [hoveredSide, setHoveredSide] = useState(null); // "red", "blue"
+  const [stats, setStats] = useState({ challengesCompleted: 0, points: 0 });
+
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    if (user.user_id) {
-      fetchUserStats();
-    }
+    if (user.user_id) fetchUserStats();
   }, []);
 
   const fetchUserStats = async () => {
     try {
       const statsRes = await fetch(`${API_BASE}/user/${user.user_id}/stats`);
       const statsData = await statsRes.json();
-
       setStats({
         challengesCompleted: statsData.total_challenges || 0,
-        points: statsData.progress || 0,
-        streak: 0
+        points: statsData.progress || 0
       });
     } catch (err) {
       console.error("Error fetching stats:", err);
     }
   };
 
+  const redChallenges = [
+    { id: 1, name: "Service Enumeration", desc: "Scan the PawnBox network to identify live services and entry points.", icon: Search, points: 50, locked: false },
+    { id: 2, name: "Authentication Logic Abuse", desc: "Exploit reflected XSS in the login system to hijack sessions.", icon: Target, points: 100, locked: false },
+    { id: 3, name: "File Upload Misconfiguration", desc: "Bypass extension filters to achieve remote code execution (RCE).", icon: FileUp, points: 150, locked: false },
+    { id: 4, name: "SQL Injection", desc: "Bypass authentication using unsanitized SQL queries.", icon: Shield, points: 200, locked: false },
+    { id: 5, name: "Business Logic Abuse", desc: "Manipulate checkout prices to buy premium hardware for $1.", icon: ShoppingCart, points: 350, locked: false }
+  ];
+
+  const blueChallenges = [
+    { id: 1, name: "Service Monitoring", desc: "Use PawnBox to monitor active network connections and detect scans.", icon: Activity, points: 50, locked: false },
+    { id: 2, name: "Web Log Analysis", desc: "Analyze access logs to identify suspicious XSS injection patterns.", icon: FileSearch, points: 100, locked: false },
+    { id: 3, name: "Malicious Upload Detection", desc: "Locate and identify rogue web shells uploaded to the server.", icon: ShieldAlert, points: 150, locked: false },
+    { id: 4, name: "SQL Injection Detection", desc: "Review database logs for SQL injection attempts.", icon: Search, points: 200, locked: false },
+    { id: 5, name: "Logic Abuse Detection", desc: "Identify price tampering by comparing logs with database reality.", icon: Eye, points: 350, locked: false }
+  ];
+
+  const getPath = (challenge, type) => {
+    if (type === "red") {
+      if (challenge.id === 2) return "#/xss-challenge";
+      if (challenge.id === 3) return "#/upload-challenge";
+      if (challenge.id === 4) return "#/sqli-challenge";
+      if (challenge.id === 5) return "#/logic-challenge";
+    } else {
+      return `#/defensive-challenge/${challenge.id}`;
+    }
+    return "#/real-life";
+  };
+
+  const SelectionScreen = () => (
+    <div style={{
+      height: "calc(100vh - 80px)",
+      display: "flex",
+      position: "relative",
+      background: "#000",
+      overflow: "hidden"
+    }}>
+      <div style={{
+        position: "absolute",
+        top: 0, left: 0, width: "100%", height: "100%",
+        backgroundImage: "url('/choice.webp')",
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        opacity: 0.3,
+        zIndex: 1
+      }} />
+
+      <div style={{
+        position: "absolute",
+        top: 0, left: 0, width: "50%", height: "100%",
+        background: "radial-gradient(circle, rgba(0,212,255,0.15) 0%, transparent 70%)",
+        opacity: hoveredSide === "blue" ? 1 : 0,
+        transition: "0.5s",
+        zIndex: 2
+      }} />
+
+      <div style={{
+        position: "absolute",
+        top: 0, right: 0, width: "50%", height: "100%",
+        background: "radial-gradient(circle, rgba(255,0,68,0.15) 0%, transparent 70%)",
+        opacity: hoveredSide === "red" ? 1 : 0,
+        transition: "0.5s",
+        zIndex: 2
+      }} />
+
+      <div
+        style={{
+          flex: 1, zIndex: 10, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", cursor: "pointer",
+          borderRight: "1px solid rgba(255,255,255,0.05)"
+        }}
+        onMouseEnter={() => setHoveredSide("blue")}
+        onMouseLeave={() => setHoveredSide(null)}
+        onClick={() => setView("blue-roadmap")}
+      >
+        <div style={{
+          fontSize: "48px", fontWeight: "900", color: hoveredSide === "blue" ? "#00d4ff" : "#444",
+          textShadow: hoveredSide === "blue" ? "0 0 20px #00d4ff" : "none",
+          transition: "0.3s", transform: hoveredSide === "blue" ? "scale(1.1)" : "scale(1)"
+        }}>
+          BLUE TEAM
+        </div>
+        <div style={{
+          marginTop: "20px", color: "#00d4ff", border: "1px solid #00d4ff",
+          padding: "10px 30px", borderRadius: "4px", fontWeight: "700",
+          opacity: hoveredSide === "blue" ? 1 : 0, transition: "0.3s",
+          fontFamily: "monospace", letterSpacing: "2px"
+        }}>
+          "DEFEND THE SYSTEM"
+        </div>
+      </div>
+
+      <div
+        style={{
+          flex: 1, zIndex: 10, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", cursor: "pointer"
+        }}
+        onMouseEnter={() => setHoveredSide("red")}
+        onMouseLeave={() => setHoveredSide(null)}
+        onClick={() => setView("red-roadmap")}
+      >
+        <div style={{
+          fontSize: "48px", fontWeight: "900", color: hoveredSide === "red" ? "#ff0044" : "#444",
+          textShadow: hoveredSide === "red" ? "0 0 20px #ff0044" : "none",
+          transition: "0.3s", transform: hoveredSide === "red" ? "scale(1.1)" : "scale(1)"
+        }}>
+          RED TEAM
+        </div>
+        <div style={{
+          marginTop: "20px", color: "#ff0044", border: "1px solid #ff0044",
+          padding: "10px 30px", borderRadius: "4px", fontWeight: "700",
+          opacity: hoveredSide === "red" ? 1 : 0, transition: "0.3s",
+          fontFamily: "monospace", letterSpacing: "2px"
+        }}>
+          "BREAK THE SYSTEM"
+        </div>
+      </div>
+
+      <div style={{
+        position: "absolute", bottom: "40px", width: "100%", textAlign: "center",
+        zIndex: 10, color: "rgba(255,255,255,0.2)", fontSize: "12px", fontWeight: "600",
+        textTransform: "uppercase", letterSpacing: "3px"
+      }}>
+        CHOOSE YOUR SIDE. ATTACK LIKE A RED TEAM. DEFEND LIKE A BLUE TEAM.
+      </div>
+    </div>
+  );
+
+  const RoadmapScreen = ({ type }) => {
+    const isRed = type === "red";
+    const challenges = isRed ? redChallenges : blueChallenges;
+    const color = isRed ? "#ff0044" : "#00d4ff";
+
+    return (
+      <div style={{ padding: "40px", maxWidth: "900px", margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
+          <button
+            onClick={() => setView("selection")}
+            style={{
+              background: "none", border: "1px solid rgba(255,255,255,0.1)", color: "var(--muted)",
+              padding: "8px 16px", borderRadius: "6px", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "8px",
+              fontSize: "13px", fontWeight: "600"
+            }}
+          >
+            <ArrowLeft size={14} /> SWITCH ROLE
+          </button>
+          <div style={{ display: "flex", gap: "20px" }}>
+            <div style={{ textAlign: "right" }}>
+              <span style={{ display: "block", fontSize: "10px", color: "var(--muted)", textTransform: "uppercase" }}>Ranked Score</span>
+              <span style={{ fontSize: "18px", fontWeight: "900", color: "#fff" }}>{stats.points} <span style={{ color: color }}>PTS</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: "60px" }}>
+          <h1 style={{
+            fontSize: "42px", fontWeight: "900", margin: "0 0 10px 0",
+            color: "#fff", textShadow: `0 0 30px ${color}40`, letterSpacing: "-1px"
+          }}>
+            {isRed ? "RED TEAM OPS" : "BLUE TEAM OPS"}
+          </h1>
+          <p style={{ color: "var(--muted)", fontSize: "16px", margin: 0, fontFamily: "monospace" }}>
+                        // {isRed ? "OFFENSIVE_SECURITY_ROADMAP_LOADED" : "DEFENSIVE_MONITORING_SUITE_READY"}
+          </p>
+        </div>
+
+        <div style={{ position: "relative", paddingLeft: "40px" }}>
+          <div style={{
+            position: "absolute", left: "15px", top: 0, bottom: 0, width: "2px",
+            background: `linear-gradient(to bottom, ${color}, rgba(255,255,255,0.02))`
+          }} />
+
+          {challenges.map((challenge) => (
+            <div key={challenge.id} style={{ marginBottom: "30px", position: "relative" }}>
+              <div style={{
+                position: "absolute", left: "-32px", top: "4px", width: "16px", height: "16px",
+                borderRadius: "50%", background: challenge.locked ? "#222" : color,
+                boxShadow: challenge.locked ? "none" : `0 0 15px ${color}`,
+                border: "4px solid var(--bg)", zIndex: 2
+              }} />
+
+              <a href={getPath(challenge, type)} style={{ textDecoration: "none" }}>
+                <div
+                  style={{
+                    background: "var(--card-bg)", border: "1px solid var(--card-border)",
+                    padding: "24px", borderRadius: "12px", transition: "0.3s",
+                    opacity: challenge.locked ? 0.4 : 1,
+                    cursor: challenge.locked ? "not-allowed" : "pointer"
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!challenge.locked) {
+                      e.currentTarget.style.borderColor = color;
+                      e.currentTarget.style.background = `${color}05`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--card-border)";
+                    e.currentTarget.style.background = "var(--card-bg)";
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <div style={{ color: color }}>
+                        <challenge.icon size={22} />
+                      </div>
+                      <span style={{ fontSize: "18px", fontWeight: "700", color: "#fff", letterSpacing: "-0.5px" }}>
+                        {challenge.name}
+                      </span>
+                    </div>
+                    <div style={{ fontWeight: "900", color: color, fontSize: "16px", fontFamily: "monospace" }}>
+                      {challenge.points}
+                    </div>
+                  </div>
+                  <p style={{ color: "var(--muted)", margin: "0 0 20px 0", fontSize: "14px", lineHeight: "1.6" }}>
+                    {challenge.desc}
+                  </p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <span style={{ background: "#000", padding: "4px 10px", borderRadius: "4px", fontSize: "10px", color: color, border: `1px solid ${color}40`, fontWeight: "800", textTransform: "uppercase" }}>
+                        PAWNBOX
+                      </span>
+                    </div>
+                    <div style={{ color: challenge.locked ? "var(--muted)" : color, fontSize: "12px", fontWeight: "900", display: "flex", alignItems: "center", gap: "6px", fontFamily: "monospace" }}>
+                      {challenge.locked ? <><Lock size={12} /> LOCKED</> : <><Zap size={12} /> INITIATE_BREACH</>}
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--text)", fontFamily: "sans-serif" }}>
+    <div style={{ background: "#000", minHeight: "100vh" }}>
       <Navbar />
       <div style={{ display: "flex" }}>
         <Sidebar active="challenges" />
-        <main style={{ flex: 1, padding: "40px" }}>
-          <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-
-            {/* Header & Stats */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "40px",
-              marginBottom: "40px",
-              borderBottom: "1px solid var(--card-border)",
-              paddingBottom: "20px"
-            }}>
-              <h1 style={{ fontSize: "32px", fontWeight: "bold", color: "var(--text)", margin: 0 }}>Challenges</h1>
-
-              <div style={{ display: "flex", gap: "30px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <Target size={20} color="#888" />
-                  <div>
-                    <span style={{ display: "block", fontSize: "12px", color: "var(--muted)" }}>Completed</span>
-                    <span style={{ fontSize: "18px", fontWeight: "bold", color: "var(--text)" }}>{stats.challengesCompleted}</span>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <Trophy size={20} color="#ffd43b" />
-                  <div>
-                    <span style={{ display: "block", fontSize: "12px", color: "var(--muted)" }}>Points</span>
-                    <span style={{ fontSize: "18px", fontWeight: "bold", color: "var(--cyan)" }}>{stats.points}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* List Layout */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-              {categories.map((category) => (
-                <a
-                  key={category.key}
-                  href={`#/challenges/${encodeURIComponent(category.key)}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  <div style={{
-                    background: "var(--card-bg)",
-                    borderRadius: "8px",
-                    padding: "20px",
-                    border: "1px solid var(--card-border)",
-                    transition: "transform 0.2s, border-color 0.2s, background 0.2s",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "20px"
-                  }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateX(5px)";
-                      e.currentTarget.style.borderColor = category.color;
-                      e.currentTarget.style.background = "var(--input-bg)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateX(0)";
-                      e.currentTarget.style.borderColor = "var(--card-border)";
-                      e.currentTarget.style.background = "var(--card-bg)";
-                    }}
-                  >
-                    {/* Icon */}
-                    <div style={{
-                      background: `${category.color}20`,
-                      padding: "12px",
-                      borderRadius: "8px",
-                      color: category.color,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      <category.icon size={24} />
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "5px" }}>
-                        <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text)", margin: 0 }}>
-                          {category.name}
-                        </h3>
-                        <span style={{
-                          fontSize: "11px",
-                          color: "var(--muted)",
-                          background: "var(--input-bg)",
-                          padding: "2px 8px",
-                          borderRadius: "12px",
-                          border: "1px solid var(--card-border)"
-                        }}>
-                          {category.difficulty}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: "14px", color: "var(--muted)", margin: "0 0 8px 0" }}>
-                        {category.description}
-                      </p>
-                      <div style={{ fontSize: "12px", color: "var(--muted)", display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ color: category.color, fontWeight: "600" }}>Learn:</span>
-                        <span style={{ color: "var(--muted)" }}>{category.learn}</span>
-                      </div>
-                    </div>
-
-                    {/* Arrow */}
-                    <div style={{ color: "#444" }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-
-          </div>
+        <main style={{ flex: 1, minHeight: "100vh" }}>
+          {view === "selection" && <SelectionScreen />}
+          {view === "red-roadmap" && <RoadmapScreen type="red" />}
+          {view === "blue-roadmap" && <RoadmapScreen type="blue" />}
         </main>
       </div>
     </div>

@@ -55,6 +55,9 @@ PRODUCTS = {
     }
 }
 
+# In-memory transaction log for demonstration purposes
+TRANSACTIONS = []
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -73,6 +76,7 @@ HTML_TEMPLATE = """
             --muted: #71717a;
             --border: #1e1e21;
             --success: #00ff88;
+            --warning: #facc15;
         }
 
         * { box-sizing: border-box; }
@@ -107,6 +111,12 @@ HTML_TEMPLATE = """
             font-family: 'JetBrains Mono', monospace;
         }
 
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
         .cart-trigger {
             background: var(--card);
             border: 1px solid var(--border);
@@ -134,6 +144,19 @@ HTML_TEMPLATE = """
             border-radius: 4px;
         }
 
+        .cart-section-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
         .hero {
             padding: 80px 5% 50px;
             text-align: center;
@@ -159,94 +182,152 @@ HTML_TEMPLATE = """
             opacity: 0.8;
         }
 
-        .container { padding: 0 5% 100px; }
+        .container { 
+            padding: 30px 4% 100px;
+            max-width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 400px; /* Persistent Right-Side Log */
+            gap: 40px;
+            margin: 0;
+        }
 
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
         }
 
-        .product-card {
-            background: var(--card);
+        /* Mockup Styled Navbar Links */
+        .system-logs-btn {
+            background: #fff;
+            color: #000;
+            border: 2px solid #fff;
+            padding: 6px 20px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: 0.2s;
+            margin-right: 15px;
+            display: none; /* Hidden because we are making the log persistent on the right now */
+        }
+
+        /* Side Panel: persistent integrated log */
+        .logs-panel {
+            background: #000;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            height: calc(100vh - 150px);
+            position: sticky;
+            top: 100px;
             display: flex;
             flex-direction: column;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
-        .product-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-        }
-
-        .image-container {
-            width: 100%;
-            height: 220px;
-            overflow: hidden;
-            background: #000;
-            position: relative;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: 0.5s;
-            opacity: 0.7;
-        }
-
-        .product-card:hover .image-container img {
-            transform: scale(1.05);
-            opacity: 1;
-        }
-
-        .product-content { padding: 20px; }
-
-        .product-category {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: var(--primary);
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            margin-bottom: 8px;
+        .logs-panel-header {
+            background: var(--border);
+            padding: 12px 20px;
             font-family: 'JetBrains Mono', monospace;
-        }
-
-        .product-name { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
-        .product-desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
-        
-        .product-footer {
+            font-size: 12px;
+            font-weight: bold;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
         }
 
-        .price { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .logs-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: #050506;
+        }
 
-        .add-btn {
-            background: var(--primary);
+        /* Side Drawers Shared Styling */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: var(--bg);
+            border-left: 1px solid var(--border);
+            z-index: 1000;
+            padding: 40px 30px;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -20px 0 50px rgba(0,0,0,0.8);
+        }
+
+        .drawer.open { right: 0; }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: #00ff88; /* Success Green */
             color: #000;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 13px;
+            padding: 15px 30px;
+            border-radius: 4px;
+            font-weight: 800;
+            z-index: 2000;
+            transform: translateX(120%);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'JetBrains Mono', monospace;
+            box-shadow: 0 10px 30px rgba(0,255,136,0.3);
         }
 
-        .add-btn:hover {
-            background: #fff;
-            box-shadow: 0 0 15px rgba(255,255,255,0.4);
+        .toast.show { transform: translateX(0); }
+        .audit-panel {
+            margin-top: 50px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
         }
+
+        .audit-header {
+            background: var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .audit-content {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            background: #050506;
+        }
+
+        .log-entry {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: grid;
+            grid-template-columns: 100px 1fr 100px 150px;
+            gap: 20px;
+            font-size: 12px;
+        }
+
+        .log-entry:last-child { border: none; }
+        .log-time { color: var(--muted); }
+        .log-product { color: #fff; font-weight: 600; }
+        .log-price { color: var(--primary); }
+        .log-status { font-weight: 800; text-align: right; }
+        .status-breach { color: var(--accent); }
+        .status-valid { color: var(--success); }
 
         /* Cart Drawer */
         #cart-drawer {
@@ -329,7 +410,6 @@ HTML_TEMPLATE = """
 
         .checkout-btn:hover { background: #fff; transform: translateY(-2px); }
 
-        /* Pop-out Animation for Cart */
         .pop-out {
             position: fixed;
             bottom: 30px;
@@ -393,98 +473,115 @@ HTML_TEMPLATE = """
 
     <nav class="navbar">
         <div class="logo">> PHANTOM.TECH</div>
-        <div class="cart-trigger" onclick="toggleDrawer(true)">
-            <span>// SHOPPING_CART</span>
-            <span class="cart-badge" id="cart-count">0</span>
+        <div class="nav-links">
+            <div class="cart-trigger" onclick="toggleCart(true)">
+                <span>// SHOPPING_CART</span>
+                <span class="cart-badge" id="cart-count">0</span>
+            </div>
         </div>
     </nav>
 
-    {% if page == 'success' %}
-        <div class="success-container">
-            <div class="success-icon">[ TRANSACTION_CONFIRMED ]</div>
-            <h1>ORDER SECURED</h1>
-            <p>Order processed for <span style="color: var(--primary)">${{ amount }}</span>.</p>
-            
-            {% if amount <= 1 %}
-                <div class="flag-box">
-                    <h3>// SYSTEM_BREACH_DETECTED</h3>
-                    <div class="flag-text">🚩 FLAG{business_logic_price_tampering}</div>
-                </div>
-            {% else %}
-                <p style="color: var(--muted); margin-top: 40px;">* SYSTEM_LOG: Integrity check passed. Full market value paid.</p>
-            {% endif %}
-            <br><br>
-            <button class="add-btn" onclick="window.location.href='/'" style="width: auto; padding: 12px 30px;">// BACK_TO_SHOP</button>
-        </div>
-    {% else %}
-        <section class="hero">
-            <h1>TRUST IS A VULNERABILITY.</h1>
-            <p>> Elite hardware for the modern breach. Every system has a price point. What's yours?</p>
-        </section>
+    <section class="hero">
+        <h1>TRUST IS A VULNERABILITY.</h1>
+        <p>> Elite hardware for the modern breach. Every system has a price point. What's yours?</p>
+    </section>
 
-        <div class="container">
+    <div class="container">
+        <!-- LEFT COLUMN: PRODUCTS -->
+        <div class="main-content">
             <div class="product-grid">
                 {% for id, p in products.items() %}
                 <div class="product-card">
-                    <div class="image-container">
-                        <img src="{{ p.image }}" alt="{{ p.name }}">
+                    <div style="width: 100%; height: 200px; background: #000; position: relative; border-bottom: 1px solid var(--border); overflow: hidden;">
+                        <img src="{{ p.image }}" alt="{{ p.name }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: 0.3s;">
                     </div>
-                    <div class="product-content">
-                        <span class="product-category">// {{ p.category }}</span>
-                        <h3 class="product-name">{{ p.name }}</h3>
-                        <p class="product-desc">{{ p.desc }}</p>
-                        <div class="product-footer">
-                            <span class="price">${{ p.price }}</span>
-                            <button class="add-btn" onclick="addToCart('{{ id }}', '{{ p.name }}', {{ p.price }})">ADD_TO_CART</button>
+                    <div style="padding: 20px;">
+                        <span style="font-size: 10px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 1.5px; font-family: 'JetBrains Mono';">// {{ p.category }}</span>
+                        <h3 style="font-size: 18px; font-weight: 600; margin: 6px 0;">{{ p.name }}</h3>
+                        <p style="font-size: 12px; color: var(--muted); margin-bottom: 20px; line-height: 1.5;">{{ p.desc }}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 20px; font-weight: 800; font-family: 'JetBrains Mono';">${{ p.price }}</span>
+                            <button class="add-btn" onclick="addToCart('{{ id }}', '{{ p.name }}', {{ p.price }})" style="background: var(--primary); color: #000; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer;">ADD_TO_CART</button>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-
-            <div class="system-footer">
-                [SYSTEM_CMD]: Connecting to secure_checkout_v4.2...<br>
-                [VERIFYING]: Authentication handled by client_logic.js<br>
-                [DEBUG]: Payload validation: NONE (Price field trusted for performance)
-            </div>
         </div>
 
-        <div id="cart-drawer">
-            <div class="drawer-header">
-                <h2>// ACTIVE_CART</h2>
-                <button class="close-drawer" onclick="toggleDrawer(false)">X</button>
-            </div>
-            <div id="cart-items">
-                <!-- Data injected by JS -->
-            </div>
-            <div class="checkout-footer">
-                <div class="total-row">
-                    <span>SUBTOTAL</span>
-                    <span id="cart-total">$0</span>
+        <!-- RIGHT COLUMN: PERSISTENT TRANSACTION MONITOR (CLIENT-SIDE) -->
+        <div class="side-panel">
+            <div class="logs-panel">
+                <div class="logs-panel-header">
+                    <span>> UPLINK_TRANSACTION_MONITOR</span>
+                    <button onclick="clearLogs()" style="background:none; border:none; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 9px; cursor: pointer;">[CLEAR]</button>
                 </div>
-                <button class="checkout-btn" onclick="checkout()">EXECUTE_CHECKOUT</button>
+                <div class="logs-panel-content" id="audit-log">
+                    <!-- Logs injected by pollers -->
+                </div>
+                <div style="padding: 10px 20px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.02); font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono';">
+                    [ STATUS ]: MONITORING_CLIENT_REQUESTS...<br>
+                    [ TRACE ]: LOCAL_CLIENT_UPLINK
+                </div>
+            </div>
+
+            <!-- EDITABLE EXPLOIT REFERENCE SECTION -->
+            <div style="margin-top: 20px; background: #000; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+                <div style="background: var(--border); padding: 8px 15px; font-family: 'JetBrains Mono'; font-size: 11px; font-weight: bold; color: var(--warning);">
+                    > EXPLOIT_REFERENCE (EDITABLE)
+                </div>
+                <div contenteditable="true" style="padding: 15px; font-family: 'JetBrains Mono'; font-size: 11px; color: #00ff88; background: #050506; line-height: 1.6; outline: none;">
+                    <span style="color: #fff;">Product-Agnostic Exploit:</span><br><br>
+                    curl -X POST http://localhost:9090/checkout \<br>
+                    -H "Content-Type: application/json" \<br>
+                    -d '{"product":"ANY_PRODUCT_NAME", "price":1, "quantity":1}'
+                </div>
+                <div style="padding: 8px 15px; font-size: 9px; color: var(--muted); border-top: 1px solid var(--border);">
+                    * Click text to modify parameters for live demo.
+                </div>
             </div>
         </div>
+    </div>
 
-        <div id="pop-out" class="pop-out">STATUS: ITEM_ADDED // 🛒</div>
-    {% endif %}
+    <!-- SIDE DRAWER: SHOPPING CART -->
+    <div id="cart-drawer" class="drawer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #fff; padding-bottom: 10px;">
+            <h2 style="font-family: 'JetBrains Mono'; font-size: 18px; margin: 0;">// ACTIVE_CART</h2>
+            <button onclick="toggleCart(false)" style="background:none; border:none; color:#fff; cursor:pointer; font-size:20px;">✕</button>
+        </div>
+        <div id="cart-items" style="flex:1; overflow-y:auto;">
+            <!-- Data injected by JS -->
+        </div>
+        <div style="border-top: 1px solid var(--border); padding-top: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-family: 'JetBrains Mono'; font-size: 18px; font-weight: bold;">
+                <span>TOTAL</span>
+                <span id="cart-total">$0</span>
+            </div>
+            <button class="checkout-btn" onclick="checkout()" style="width: 100%; padding: 15px; background: var(--success); color: #000; border: none; border-radius: 4px; font-weight: 800; cursor: pointer;">EXECUTE_PAYMENT</button>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="toast">PURCHASE_COMPLETE // 💳</div>
 
     <script>
         let cart = JSON.parse(localStorage.getItem('phantom_cart') || '[]');
         updateCartDisplay();
+        pollAuditLog();
 
-        function toggleDrawer(open) {
-            document.getElementById('cart-drawer').classList.toggle('open', open);
-        }
+        function toggleCart(open) { document.getElementById('cart-drawer').classList.toggle('open', open); }
 
         function addToCart(id, name, price) {
             cart.push({ id, name, price });
             localStorage.setItem('phantom_cart', JSON.stringify(cart));
             updateCartDisplay();
-            
-            const pop = document.getElementById('pop-out');
-            pop.classList.add('show');
-            setTimeout(() => pop.classList.remove('show'), 2000);
+            showPopup("ITEM IS ADDED");
+        }
+
+        function showPopup(msg) {
+            const toast = document.getElementById('toast-notification');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         function updateCartDisplay() {
@@ -498,12 +595,12 @@ HTML_TEMPLATE = """
                 cart.forEach((item, index) => {
                     total += item.price;
                     itemContainer.innerHTML += `
-                        <div class="cart-item">
-                            <div class="cart-item-info">
-                                <h4>${item.name}</h4>
-                                <p>$${item.price}</p>
+                        <div style="display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border);">
+                            <div>
+                                <h4 style="margin: 0; font-size: 14px;">${item.name}</h4>
+                                <p style="margin: 4px 0; color: var(--primary); font-size: 13px; font-family: 'JetBrains Mono';">$${item.price}</p>
                             </div>
-                            <button onclick="removeItem(${index})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-family:'JetBrains Mono'; font-size:11px;">[ REMOVE ]</button>
+                            <button onclick="removeItem(${index})" style="background:none; border:none; color:var(--accent); cursor:pointer;">[X]</button>
                         </div>
                     `;
                 });
@@ -517,26 +614,53 @@ HTML_TEMPLATE = """
             updateCartDisplay();
         }
 
+        function clearLogs() { fetch('/clear_logs', { method: 'POST' }).then(() => pollAuditLog()); }
+
+        function pollAuditLog() {
+            fetch('/transactions')
+                .then(res => res.json())
+                .then(data => {
+                    const logContainer = document.getElementById('audit-log');
+                    if(!logContainer) return;
+                    logContainer.innerHTML = data.length === 0 ? '<div style="color:var(--muted); text-align:center; padding:40px;">[WAITING_FOR_DATA]</div>' : 
+                        data.map(tx => `
+                            <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:2px;">
+                                <div style="display:flex; justify-content:space-between; color:var(--muted); font-size:10px;">
+                                    <span>[${tx.time}] ID:TX_${Math.floor(Math.random()*10000)}</span>
+                                    <span style="color:${tx.price <= 1 ? 'var(--accent)' : 'var(--success)'}">[${tx.price <= 1 ? 'BREACH' : 'OK'}]</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span style="color:#fff;">${tx.product}</span>
+                                    <span style="font-weight:bold; color:var(--primary)">$${tx.price}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                });
+        }
+
+        setInterval(pollAuditLog, 3000);
+
         function checkout() {
-            if(cart.length === 0) return alert("System Error: No items detected in cart.");
-            
-            // INTENTIONAL VULNERABILITY
+            if(cart.length === 0) return;
             const item = cart[0]; 
-            
             fetch('/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    product: item.name,
-                    price: item.price,
-                    quantity: 1
-                })
+                body: JSON.stringify({ product: item.name, price: item.price, quantity: 1 })
             })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
+                    cart = [];
                     localStorage.removeItem('phantom_cart');
-                    window.location.href = '/order-confirmation?amount=' + data.amount;
+                    updateCartDisplay();
+                    toggleCart(false);
+                    pollAuditLog();
+                    if(data.amount <= 1) {
+                        alert("🚨 SYSTEM_BREACH_DETECTED! \\nIntegrity check bypassed. Price field trusted from client. \\n\\nFlag revealed: FLAG{business_logic_price_tampering}");
+                    } else {
+                        showPopup("PURCHASE_COMPLETE // 💳");
+                    }
                 }
             });
         }
@@ -547,13 +671,31 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def home():
-    return render_template_string(HTML_TEMPLATE, page='home', products=PRODUCTS)
+    return render_template_string(HTML_TEMPLATE, page='home', products=PRODUCTS, transactions=TRANSACTIONS[::-1])
+
+@app.route('/transactions')
+def get_transactions():
+    return jsonify(TRANSACTIONS[::-1])
+
+@app.route('/clear_logs', methods=['POST'])
+def clear_logs():
+    TRANSACTIONS.clear()
+    return jsonify({"success": True})
 
 @app.route('/checkout', methods=['POST'])
 def checkout():
+    import datetime
     data = request.get_json()
     price = data.get('price', 0)
     product = data.get('product', 'Unknown')
+    
+    # Log the transaction
+    TRANSACTIONS.append({
+        "time": datetime.datetime.now().strftime("%H:%M:%S"),
+        "product": product,
+        "price": price
+    })
+    
     return jsonify({"success": True, "amount": price, "product": product})
 
 @app.route('/order-confirmation')

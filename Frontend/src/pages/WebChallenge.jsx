@@ -391,7 +391,7 @@ export default function WebChallenge({ level }) {
                                         borderRadius: "12px",
                                         border: "1px solid #333",
                                         overflow: "hidden",
-                                        height: "550px",
+                                        height: "calc(100vh - 180px)",
                                         display: "flex",
                                         flexDirection: "column",
                                         boxShadow: "0 10px 30px rgba(0,0,0,0.5)"

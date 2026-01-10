@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { API_BASE } from "../config";
@@ -53,48 +53,37 @@ export default function RealLifeChallenges() {
     ];
 
     return (
-        <div>
+        <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--text)" }}>
             <Navbar />
             <div style={{ display: "flex" }}>
-                <Sidebar />
-                <main style={{
-                    flex: 1,
-                    padding: "40px",
-                    background: "var(--bg)",
-                    minHeight: "100vh",
-                    color: "var(--text)"
-                }}>
+                <Sidebar active="real-life-challenges" />
+                <main style={{ flex: 1, padding: "40px" }}>
                     <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-                        <div style={{ marginBottom: "40px" }}>
-                            <h1 style={{ fontSize: "36px", fontWeight: "800", marginBottom: "12px", background: "linear-gradient(90deg, #fff, var(--muted))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                                Real-Life Security Challenges
-                            </h1>
-                            <p style={{ color: "var(--muted)", fontSize: "16px", maxWidth: "700px" }}>
-                                Professional cyber-lab experience inspired by real-world vulnerabilities. Exploit targets directly from your PawnBox terminal.
-                            </p>
+                        <div style={{ marginBottom: "40px", borderBottom: "1px solid var(--card-border)", paddingBottom: "20px" }}>
+                            <h1 style={{ fontSize: "32px", fontWeight: "800", margin: 0 }}>Real-Life Web Challenges</h1>
+                            <p style={{ color: "var(--muted)", marginTop: "10px" }}>Exploit enterprise-grade vulnerabilities in isolated environments.</p>
                         </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "25px" }}>
-                            {categories.map((category) => (
-                                <a
-                                    key={category.key}
-                                    href={category.path}
-                                    style={{ textDecoration: "none" }}
-                                >
-                                    <div style={{
-                                        background: "var(--card-bg)",
-                                        border: "1px solid var(--card-border)",
-                                        borderRadius: "16px",
-                                        padding: "24px",
-                                        position: "relative",
-                                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                        cursor: "pointer",
-                                        overflow: "hidden"
-                                    }}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(500px, 1fr))", gap: "25px" }}>
+                            {categories.map((cat) => (
+                                <a key={cat.key} href={cat.path} style={{ textDecoration: "none", color: "inherit" }}>
+                                    <div
+                                        style={{
+                                            background: "var(--card-bg)",
+                                            border: "1px solid var(--card-border)",
+                                            borderRadius: "16px",
+                                            padding: "30px",
+                                            transition: "all 0.3s ease",
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            gap: "24px",
+                                            position: "relative",
+                                            overflow: "hidden"
+                                        }}
                                         onMouseEnter={(e) => {
                                             e.currentTarget.style.transform = "translateY(-5px)";
-                                            e.currentTarget.style.borderColor = category.color;
-                                            e.currentTarget.style.boxShadow = `0 10px 30px -10px ${category.color}40`;
+                                            e.currentTarget.style.borderColor = cat.color;
+                                            e.currentTarget.style.boxShadow = `0 10px 40px ${cat.color}20`;
                                         }}
                                         onMouseLeave={(e) => {
                                             e.currentTarget.style.transform = "translateY(0)";
@@ -102,70 +91,32 @@ export default function RealLifeChallenges() {
                                             e.currentTarget.style.boxShadow = "none";
                                         }}
                                     >
-                                        {/* Status Header */}
-                                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-                                            <span style={{
-                                                background: `${category.color}15`,
-                                                color: category.color,
-                                                padding: "6px 12px",
-                                                borderRadius: "6px",
-                                                fontSize: "12px",
-                                                fontWeight: "700",
-                                                textTransform: "uppercase"
-                                            }}>
-                                                {category.difficulty}
-                                            </span>
-                                            <span style={{ color: "var(--cyan)", fontSize: "14px", fontWeight: "700", fontFamily: "monospace" }}>
-                                                {category.points} PTS
-                                            </span>
-                                        </div>
-
-                                        {/* Icon & Title */}
-                                        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
-                                            <div style={{
-                                                background: `${category.color}20`,
-                                                padding: "12px",
-                                                borderRadius: "12px",
-                                                color: category.color
-                                            }}>
-                                                <category.icon size={28} />
-                                            </div>
-                                            <h3 style={{ fontSize: "22px", fontWeight: "700", margin: 0, color: "#fff" }}>
-                                                {category.name}
-                                            </h3>
-                                        </div>
-
-                                        {/* Description */}
-                                        <p style={{ color: "var(--muted)", fontSize: "14px", lineHeight: "1.6", marginBottom: "24px", height: "65px", overflow: "hidden" }}>
-                                            {category.description}
-                                        </p>
-
-                                        {/* Footer */}
                                         <div style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            paddingTop: "20px",
-                                            borderTop: "1px solid var(--card-border)"
+                                            background: `${cat.color}15`,
+                                            padding: "16px",
+                                            borderRadius: "12px",
+                                            color: cat.color,
+                                            height: "fit-content"
                                         }}>
-                                            <div style={{ display: "flex", gap: "8px" }}>
-                                                <span style={{ background: "#1a1a1a", border: "1px solid #333", padding: "4px 8px", borderRadius: "4px", fontSize: "11px", color: "#888" }}>
-                                                    {category.key}
-                                                </span>
+                                            <cat.icon size={32} />
+                                        </div>
+
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                                                <span style={{ fontSize: "11px", fontWeight: "700", color: cat.color, textTransform: "uppercase", letterSpacing: "1px" }}>{cat.difficulty}</span>
+                                                <span style={{ fontSize: "14px", fontWeight: "800", color: "var(--cyan)" }}>{cat.points} PTS</span>
                                             </div>
-                                            <div style={{
-                                                background: "var(--cyan)",
-                                                color: "#000",
-                                                padding: "8px 16px",
-                                                borderRadius: "8px",
-                                                fontSize: "14px",
-                                                fontWeight: "700",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: "8px"
-                                            }}>
-                                                Launch <ChevronRight size={16} />
+                                            <h3 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "12px", color: "#fff" }}>{cat.name}</h3>
+                                            <p style={{ fontSize: "14px", color: "var(--muted)", lineHeight: "1.6", marginBottom: "20px" }}>{cat.description}</p>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                                                <div style={{ fontSize: "12px", color: "var(--muted)" }}>
+                                                    <span style={{ color: "var(--text)", fontWeight: "600" }}>Learn: </span>{cat.learn}
+                                                </div>
                                             </div>
+                                        </div>
+
+                                        <div style={{ position: "absolute", right: "20px", bottom: "20px", color: "rgba(255,255,255,0.1)" }}>
+                                            <ChevronRight size={30} />
                                         </div>
                                     </div>
                                 </a>
