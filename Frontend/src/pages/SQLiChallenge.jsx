@@ -112,7 +112,7 @@ export default function SQLiChallenge() {
                                 <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--cyan)", marginBottom: "12px", textTransform: "uppercase" }}>🎯 Target Information</h3>
                                 <div style={{ fontSize: "13px", color: "var(--muted)", lineHeight: "1.8" }}>
                                     <div style={{ marginBottom: "8px" }}>
-                                        <strong style={{ color: "var(--text)" }}>Service URL:</strong> <code style={{ background: "var(--input-bg)", padding: "2px 6px", borderRadius: "4px", color: "var(--cyan)" }}>http://localhost:7071</code>
+                                        <strong style={{ color: "var(--text)" }}>Service URL:</strong> <code style={{ background: "var(--input-bg)", padding: "2px 6px", borderRadius: "4px", color: "var(--cyan)" }}>http://localhost:7010</code>
                                     </div>
                                     <div style={{ marginBottom: "8px" }}>
                                         <strong style={{ color: "var(--text)" }}>Vulnerability:</strong> SQL Injection (Auth Bypass)
@@ -189,7 +189,7 @@ export default function SQLiChallenge() {
                                     </ol>
                                     <div style={{ background: "var(--input-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--card-border)", marginTop: "10px" }}>
                                         <p style={{ margin: "0 0 5px 0", fontSize: "11px" }}>Terminal command:</p>
-                                        <code style={{ fontSize: "11px", color: "var(--cyan)" }}>curl -X POST http://localhost:7071/ -d "username=' OR '1'='1' -- &password=any"</code>
+                                        <code style={{ fontSize: "11px", color: "var(--cyan)" }}>curl -X POST http://localhost:7010/ -d "username=' OR '1'='1' -- &password=any"</code>
                                     </div>
                                     <p style={{ fontSize: "12px", color: "#ffa500", marginTop: "10px" }}>💡 This maps to OWASP Top 10 – A03: Injection.</p>
                                 </div>
@@ -263,12 +263,12 @@ export default function SQLiChallenge() {
                                     ) : (
                                         <div style={{ height: "100%", background: "#fff" }}>
                                             <div style={{ background: "#f0f0f0", padding: "8px 16px", borderBottom: "1px solid #ddd", fontSize: "12px", color: "#666", display: "flex", alignItems: "center", gap: "10px" }}>
-                                                <div style={{ background: "#eee", padding: "4px 12px", borderRadius: "15px", flex: 1, border: "1px solid #ccc", color: "#333" }}>http://localhost:7071</div>
+                                                <div style={{ background: "#eee", padding: "4px 12px", borderRadius: "15px", flex: 1, border: "1px solid #ccc", color: "#333" }}>http://localhost:7010</div>
                                                 <button onClick={() => { const f = document.getElementById('sqli-frame'); f.src = f.src; }} style={{ border: "none", background: "none", cursor: "pointer", color: "#666" }}>Refresh</button>
                                             </div>
                                             <iframe
                                                 id="sqli-frame"
-                                                src="http://localhost:7071"
+                                                src="http://localhost:7010"
                                                 style={{ width: "100%", height: "calc(100% - 35px)", border: "none" }}
                                                 title="SQLi Login View"
                                             />

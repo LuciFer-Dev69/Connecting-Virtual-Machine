@@ -3,3 +3,8 @@ Useful Commands:
 
 Backend API Check: curl http://localhost:5000/api/challenges
 PwnBox SSH: ssh chakra@localhost -p 2222 (password: user)
+
+
+' OR '1'='1' -- 
+anything
+

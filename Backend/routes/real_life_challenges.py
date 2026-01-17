@@ -11,7 +11,7 @@ def get_challenges():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        cursor.execute("SELECT id, title, description, difficulty, category, points FROM real_life_challenges")
+        cursor.execute("SELECT id, title, description, difficulty, category, points FROM real_life_challenges WHERE is_locked = FALSE")
         challenges = cursor.fetchall()
         
         conn.close()
@@ -26,12 +26,16 @@ def get_challenge_details(id):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        cursor.execute("SELECT id, title, description, difficulty, category, points, hints FROM real_life_challenges WHERE id = %s", (id,))
+        cursor.execute("SELECT id, title, description, difficulty, category, points, hints, is_locked FROM real_life_challenges WHERE id = %s", (id,))
         challenge = cursor.fetchone()
         
         if not challenge:
             conn.close()
             return jsonify({"error": "Challenge not found"}), 404
+
+        if challenge.get('is_locked'):
+            conn.close()
+            return jsonify({"error": "This challenge is currently locked by Administrator."}), 403
             
         # Parse hints JSON
         if challenge['hints']:
@@ -59,11 +63,15 @@ def start_challenge(id):
         cursor = conn.cursor(dictionary=True)
         
         # Get challenge info
-        cursor.execute("SELECT category, docker_image FROM real_life_challenges WHERE id = %s", (id,))
+        cursor.execute("SELECT category, docker_image, is_locked FROM real_life_challenges WHERE id = %s", (id,))
         challenge = cursor.fetchone()
         if not challenge:
             conn.close()
             return jsonify({"error": "Challenge not found"}), 404
+            
+        if challenge.get('is_locked'):
+            conn.close()
+            return jsonify({"error": "This challenge is currently locked and cannot be started."}), 403
             
         # Check existing session
         cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND status = 'active'", (user_id,))

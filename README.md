@@ -35,7 +35,7 @@ These labs are hosted inside the `chakra_pwnbox` container and are accessible th
 | :--- | :--- | :--- |
 | **Phantom Login (XSS)** | `5050` | Reflected XSS & Session Hijacking. |
 | **Phantom Profile** | `6060` | File Upload Misconfiguration & RCE. |
-| **Phantom Login (SQLi)** | `7071` | Authentication Bypass via SQL Injection. |
+| **Phantom Login (SQLi)** | `7010` | Authentication Bypass via SQL Injection. |
 | **PHANTOM.TECH** | `9090` | **Level: Advanced** - Business Logic & Price Tampering. |
 | **SQLi Login Lab** | `3003` | Classic SQLi on a simplified login portal. |
 | **Auth API Lab** | `3004` | API-based authentication vulnerabilities. |
@@ -55,7 +55,7 @@ The platform features an integrated AI assistant that reads the context of your 
 ### **3. Real-Life Web Suite**
 - **XSS Lab (Port 5050):** Uses an EJS-based search system that reflects raw input.
 - **File Upload (Port 6060):** A Python Flask app with weak extension blacklisting.
-- **SQLi (Port 7071):** A SQLite3 backend vulnerable to single-quote escapes in the login field.
+- **SQLi (Port 7010):** A SQLite3 backend vulnerable to single-quote escapes in the login field.
 - **Business Logic (Port 9090):** A premium e-commerce storefront (PHANTOM.TECH) that trusts client-sent JSON price fields during checkout.
 
 ---
@@ -76,15 +76,23 @@ The platform features an integrated AI assistant that reads the context of your 
 
 ---
 
-## 🔒 Post-Installation
-After launching, you must initialize the challenge database to populate the dashboard:
+### 🔒 Post-Installation & Access
+After launching, initialize the challenge database to populate the dashboard:
 ```bash
 docker exec -it chakra_backend python init_db.py
 ```
 
-**Credentials:**
-- **PwnBox SSH:** `chakra` : `user`
-- **Root Dev:** `root` : `rootpassword` (MySQL)
+#### **Default Credentials**
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Super Admin** | `admin@chakra.com` | `Admin@1234` |
+| **PwnBox SSH** | `chakra` (user) | `user` |
+| **MySQL Root** | `root` | `rootpassword` |
+
+#### **Admin Portal**
+Accessible at `http://localhost:3000/#/admin`.
+- **Features:** Challenge CRUD, User Suspension, Audit Logs, and Roadmap Management.
+- **RBAC:** Only users with the `admin` role can access this portal.
 
 ---
 

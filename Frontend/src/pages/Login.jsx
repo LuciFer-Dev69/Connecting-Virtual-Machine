@@ -7,7 +7,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   // Validation states
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -31,12 +31,12 @@ export default function Login() {
       setPasswordError("");
       return false;
     }
-    
+
     const hasUpperCase = /[A-Z]/.test(value);
     const hasNumber = /[0-9]/.test(value);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
     const isLongEnough = value.length >= 8;
-    
+
     if (!isLongEnough) {
       setPasswordError("Password must be at least 8 characters");
       return false;
@@ -53,7 +53,7 @@ export default function Login() {
       setPasswordError("Password must contain at least one special character");
       return false;
     }
-    
+
     setPasswordError("");
     return true;
   };
@@ -61,15 +61,15 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
-    
+
     // Validate fields
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
-    
+
     if (!isEmailValid || !isPasswordValid) {
       return;
     }
-    
+
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
@@ -86,6 +86,7 @@ export default function Login() {
       }
 
       localStorage.setItem("user", JSON.stringify(data.user || {}));
+      localStorage.setItem("token", data.token); // Store JWT token
       if (data.user?.role === "admin") {
         window.location.hash = "#/admin";
       } else {

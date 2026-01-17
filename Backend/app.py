@@ -16,12 +16,71 @@ import ai_service
 import pwnbox_manager
 import ssh_manager
 from flask_socketio import SocketIO, emit
+import jwt
+import datetime
+from functools import wraps
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 app = Flask(__name__)
 # Initialize SocketIO with CORS allowed
-# Initialize SocketIO with CORS allowed
 socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
+
+# ==================== CONFIG & SECURITY ====================
+JWT_SECRET_KEY = os.getenv("JWT_SECRET", "Chakra_Super_Secret_Key_2024")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com")
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'error': 'Token is missing'}), 401
+        try:
+            if token.startswith('Bearer '):
+                token = token.split(" ")[1]
+            data = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+            current_user_id = data['user_id']
+            current_role = data['role']
+        except:
+            return jsonify({'error': 'Token is invalid'}), 401
+        return f(current_user_id, current_role, *args, **kwargs)
+    return decorated
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'error': 'Token is missing'}), 401
+        try:
+            if token.startswith('Bearer '):
+                token = token.split(" ")[1]
+            data = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+            if data['role'] not in ['admin', 'Super Admin']:
+                return jsonify({'error': 'Admin privilege required'}), 403
+            current_user_id = data['user_id']
+            current_role = data['role']
+        except Exception as e:
+            return jsonify({'error': 'Token is invalid or expired'}), 401
+        return f(current_user_id, current_role, *args, **kwargs)
+    return decorated
+
+def log_admin_action(admin_id, action, target_type, target_id, old_val=None, new_val=None):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        ip = request.remote_addr
+        cursor.execute(
+            "INSERT INTO audit_logs (admin_id, action, target_type, target_id, old_value, new_value, ip_address) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            (admin_id, action, target_type, target_id, str(old_val), str(new_val), ip)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Logging error: {e}")
 
 from routes.real_life_challenges import real_life_bp
 app.register_blueprint(real_life_bp)
@@ -134,7 +193,7 @@ def login():
 
         # Find user
         cursor.execute(
-            "SELECT user_id, name, email, password, role, progress, profilePic FROM users WHERE email = %s",
+            "SELECT user_id, name, email, password, role, progress, profilePic, is_suspended FROM users WHERE email = %s",
             (email,)
         )
         user = cursor.fetchone()
@@ -144,19 +203,97 @@ def login():
 
         if not user:
             return jsonify({"error": "Invalid credentials"}), 401
+        
+        if user.get('is_suspended'):
+            return jsonify({"error": "Account suspended. Contact administrator."}), 403
 
         # Verify password
-        if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+        db_password = user['password']
+        # If it's already bytes (mysql-connector sometimes returns BLOB/VARCHAR as bytes), don't re-encode
+        if isinstance(db_password, str):
+            db_password = db_password.encode('utf-8')
+        
+        if not bcrypt.checkpw(password.encode('utf-8'), db_password):
             return jsonify({"error": "Invalid credentials"}), 401
+
+        # Generate JWT Token
+        token = jwt.encode({
+            'user_id': user['user_id'],
+            'role': user['role'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, JWT_SECRET_KEY, algorithm="HS256")
 
         # Remove password from response
         del user['password']
 
-        return jsonify({"user": user}), 200
+        return jsonify({"user": user, "token": token}), 200
 
     except Exception as e:
         print(f"Login error: {e}")
         return jsonify({"error": "Server error during login"}), 500
+
+
+@app.route('/api/auth/google-login', methods=['POST'])
+def google_login():
+    try:
+        data = request.get_json()
+        token = data.get('id_token')
+        
+        if not token:
+            return jsonify({"error": "Google token missing"}), 400
+
+        # Verify Google Token
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+        
+        email = idinfo['email']
+        name = idinfo.get('name', 'User')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            # Auto-create user
+            cursor.execute(
+                "INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
+                (name, email, "GOOGLE_AUTH_NO_PASSWORD", "user")
+            )
+            conn.commit()
+            new_id = cursor.lastrowid
+            
+            # Create stats
+            cursor.execute(
+                "INSERT INTO user_stats (user_id) VALUES (%s)",
+                (new_id,)
+            )
+            conn.commit()
+            
+            cursor.execute("SELECT * FROM users WHERE user_id = %s", (new_id,))
+            user = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if user.get('is_suspended'):
+            return jsonify({"error": "Account suspended"}), 403
+
+        # Generate JWT Token
+        app_token = jwt.encode({
+            'user_id': user['user_id'],
+            'role': user['role'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, JWT_SECRET_KEY, algorithm="HS256")
+
+        # Clean user object
+        if 'password' in user: del user['password']
+
+        return jsonify({"user": user, "token": app_token}), 200
+
+    except Exception as e:
+        print(f"Google Login error: {e}")
+        return jsonify({"error": "Google authentication failed"}), 401
 
 
 # ==================== CHALLENGE ROUTES ====================
@@ -168,7 +305,7 @@ def get_challenges():
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute(
-            "SELECT id, title, description, category, difficulty, level FROM challenges ORDER BY level, category"
+            "SELECT id, title, description, category, difficulty, level, points FROM challenges WHERE is_locked = FALSE ORDER BY level, category"
         )
         challenges = cursor.fetchall()
 
@@ -189,7 +326,7 @@ def get_challenge(challenge_id):
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute(
-            "SELECT id, title, description, category, difficulty, level FROM challenges WHERE id = %s",
+            "SELECT id, title, description, category, difficulty, level, is_locked FROM challenges WHERE id = %s",
             (challenge_id,)
         )
         challenge = cursor.fetchone()
@@ -199,6 +336,9 @@ def get_challenge(challenge_id):
 
         if not challenge:
             return jsonify({"error": "Challenge not found"}), 404
+        
+        if challenge.get('is_locked'):
+            return jsonify({"error": "This challenge is currently locked by Administrator."}), 403
 
         return jsonify(challenge), 200
 
@@ -430,7 +570,7 @@ def get_leaderboard():
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute(
-            'SELECT name, progress FROM users WHERE role = "user" ORDER BY progress DESC LIMIT 50'
+            'SELECT name, progress FROM users WHERE role = "user" AND is_suspended = FALSE ORDER BY progress DESC LIMIT 50'
         )
         users = cursor.fetchall()
 
@@ -544,13 +684,14 @@ def get_completed_challenges_by_category(user_id, category):
 # ==================== ADMIN ROUTES ====================
 
 @app.route('/api/admin/users', methods=['GET'])
-def get_admin_users():
+@admin_required
+def get_admin_users(current_user_id, current_role):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute(
-            "SELECT user_id, name, email, role, progress, created_at FROM users ORDER BY created_at DESC"
+            "SELECT user_id, name, email, role, progress, created_at, is_suspended FROM users ORDER BY created_at DESC"
         )
         users = cursor.fetchall()
 
@@ -564,14 +705,161 @@ def get_admin_users():
         return jsonify({"error": "Failed to fetch users"}), 500
 
 
+@app.route('/api/admin/users', methods=['POST'])
+@admin_required
+def create_user_admin(current_user_id, current_role):
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        password = data.get('password')
+
+        if not name or not email or not password:
+            return jsonify({"error": "Missing fields"}), 400
+
+        # Standard password validation not strictly enforced for admin-created users, 
+        # but let's at least check length.
+        if len(password) < 8:
+            return jsonify({"error": "Password too short"}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if email exists
+        cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "Email already exists"}), 409
+
+        # Hash password
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        # Insert user
+        cursor.execute(
+            "INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
+            (name, email, hashed_password, 'user')
+        )
+        conn.commit()
+        new_user_id = cursor.lastrowid
+
+        # Create stats entry
+        cursor.execute(
+            "INSERT INTO user_stats (user_id, beginner, intermediate, advanced, total_challenges) VALUES (%s, 0, 0, 0, 0)",
+            (new_user_id,)
+        )
+        conn.commit()
+
+        log_admin_action(current_user_id, "ADMIN_CREATE_USER", "USER", new_user_id, None, email)
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"success": True}), 201
+    except Exception as e:
+        print(f"Admin Create User Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/admin/stats', methods=['GET'])
+@admin_required
+def get_admin_stats(current_user_id, current_role):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT COUNT(*) as total_users FROM users WHERE role = 'user'")
+        users_count = cursor.fetchone()['total_users']
+
+        cursor.execute("SELECT COUNT(*) as total_challenges FROM challenges")
+        challenges_count = cursor.fetchone()['total_challenges']
+
+        cursor.execute("SELECT COUNT(*) as locked_challenges FROM challenges WHERE is_locked = TRUE")
+        locked_count = cursor.fetchone()['locked_challenges']
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "users": users_count,
+            "challenges": challenges_count,
+            "locked": locked_count,
+            "system_status": "Healthy"
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/challenges/lock', methods=['POST'])
+@admin_required
+def toggle_challenge_lock(current_user_id, current_role):
+    try:
+        data = request.get_json()
+        cid = data.get('id')
+        lock_state = data.get('is_locked')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE challenges SET is_locked = %s WHERE id = %s", (lock_state, cid))
+        conn.commit()
+        
+        log_admin_action(current_user_id, "TOGGLE_LOCK", "CHALLENGE", cid, not lock_state, lock_state)
+        
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/users/suspend', methods=['POST'])
+@admin_required
+def toggle_user_suspension(current_user_id, current_role):
+    try:
+        data = request.get_json()
+        uid = data.get('user_id')
+        suspend_state = data.get('is_suspended')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET is_suspended = %s WHERE user_id = %s", (suspend_state, uid))
+        conn.commit()
+        
+        log_admin_action(current_user_id, "SUSPEND_USER", "USER", uid, not suspend_state, suspend_state)
+        
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/audit-logs', methods=['GET'])
+@admin_required
+def get_audit_logs(current_user_id, current_role):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT l.*, u.name as admin_name 
+            FROM audit_logs l 
+            JOIN users u ON l.admin_id = u.user_id 
+            ORDER BY l.created_at DESC LIMIT 100
+        """)
+        logs = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(logs), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/admin/challenges', methods=['GET'])
-def get_admin_challenges():
+@admin_required
+def get_admin_challenges(current_user_id, current_role):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute(
-            "SELECT id, title, description, category, difficulty, level, flag, hint, points FROM challenges ORDER BY level, category"
+            "SELECT id, title, description, category, difficulty, level, flag, hint, points, is_locked FROM challenges ORDER BY level, category"
         )
         challenges = cursor.fetchall()
 
@@ -584,9 +872,9 @@ def get_admin_challenges():
         print(f"Admin challenges error: {e}")
         return jsonify({"error": "Failed to fetch challenges"}), 500
 
-
 @app.route('/api/admin/challenges', methods=['POST'])
-def create_challenge():
+@admin_required
+def create_challenge(current_user_id, current_role):
     try:
         data = request.get_json()
         title = data.get('title')
@@ -622,7 +910,8 @@ def create_challenge():
 
 
 @app.route('/api/admin/challenges/<int:challenge_id>', methods=['PUT'])
-def update_challenge(challenge_id):
+@admin_required
+def update_challenge(current_user_id, current_role, challenge_id):
     try:
         data = request.get_json()
         title = data.get('title')
@@ -654,7 +943,8 @@ def update_challenge(challenge_id):
 
 
 @app.route('/api/admin/challenges/<int:challenge_id>', methods=['DELETE'])
-def delete_challenge(challenge_id):
+@admin_required
+def delete_challenge(current_user_id, current_role, challenge_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -670,6 +960,42 @@ def delete_challenge(challenge_id):
     except Exception as e:
         print(f"Delete challenge error: {e}")
         return jsonify({"error": "Failed to delete challenge"}), 500
+
+
+# ==================== ROADMAP ROUTES ====================
+
+@app.route('/api/admin/roadmaps', methods=['GET'])
+@admin_required
+def get_admin_roadmaps(current_user_id, current_role):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM roadmaps ORDER BY created_at DESC")
+        roadmaps = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(roadmaps), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/roadmaps', methods=['POST'])
+@admin_required
+def create_roadmap(current_user_id, current_role):
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        rtype = data.get('type')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO roadmaps (name, type) VALUES (%s, %s)", (name, rtype))
+        conn.commit()
+        log_admin_action(current_user_id, "CREATE_ROADMAP", "ROADMAP", cursor.lastrowid, None, name)
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ==================== HEALTH CHECK ====================

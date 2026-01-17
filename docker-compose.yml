@@ -84,7 +84,7 @@ services:
       - "3003:3000"
       - "3004:3002"
       - "6060:6060"
-      - "7071:7071"
+      - "7010:7071" # Remapped host port due to Windows exclusion range
       - "9090:9090"
     volumes:
       - ./Backend/phantom-shop:/opt/phantom-shop

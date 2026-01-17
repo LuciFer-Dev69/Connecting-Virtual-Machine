@@ -14,6 +14,9 @@ export default function Navbar() {
         <a href="#/challenges" style={{ color: "#fff", textDecoration: "none", fontWeight: "500" }}>Challenges</a>
         <a href="#/tutorials" style={{ color: "#fff", textDecoration: "none", fontWeight: "500" }}>Learn</a>
         <a href="#/pwnbox" style={{ color: "#fff", textDecoration: "none", fontWeight: "500" }}>PwnBox</a>
+        {user?.role === "admin" && (
+          <a href="#/admin" style={{ color: "var(--cyan)", textDecoration: "none", fontWeight: "700" }}>Admin Portal</a>
+        )}
         <a href="#/about" style={{ color: "#fff", textDecoration: "none", fontWeight: "500" }}>About</a>
       </div>
 
