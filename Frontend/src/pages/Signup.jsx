@@ -8,7 +8,7 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   // Validation states
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -46,12 +46,12 @@ export default function Signup() {
       setPasswordError("");
       return false;
     }
-    
+
     const hasUpperCase = /[A-Z]/.test(value);
     const hasNumber = /[0-9]/.test(value);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
     const isLongEnough = value.length >= 8;
-    
+
     if (!isLongEnough) {
       setPasswordError("Password must be at least 8 characters");
       return false;
@@ -68,7 +68,7 @@ export default function Signup() {
       setPasswordError("Password must contain at least one special character");
       return false;
     }
-    
+
     setPasswordError("");
     return true;
   };
@@ -76,16 +76,16 @@ export default function Signup() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     // Validate all fields
     const isNameValid = validateName(name);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
-    
+
     if (!isNameValid || !isEmailValid || !isPasswordValid) {
       return;
     }
-    
+
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/auth/signup`, {

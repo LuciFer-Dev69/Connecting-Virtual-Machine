@@ -136,6 +136,8 @@ function parseHash() {
   }
 
   if (parts[0] === "admin") return { route: "admin" };
+  if (parts[0] === "red-team") return { route: "red-team" };
+  if (parts[0] === "blue-team") return { route: "blue-team" };
 
   return { route: "landing" };
 }
@@ -161,7 +163,7 @@ export default function App() {
   const isAdmin = user?.role === "admin";
 
   const protectedRoutes = [
-    "dashboard", "challenges", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge", "defensive-challenge"
+    "dashboard", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge", "defensive-challenge"
   ];
 
   if (protectedRoutes.includes(route.route) && !isAuthed) {
@@ -219,6 +221,10 @@ export default function App() {
         return <BusinessLogicChallenge />;
       case "defensive-challenge":
         return <DefensiveChallenge id={route.params?.id} />;
+      case "red-team":
+        return <Challenges initialView="red-roadmap" />;
+      case "blue-team":
+        return <Challenges initialView="blue-roadmap" />;
       case "admin":
         if (!isAdmin) {
           window.location.hash = "#/dashboard";

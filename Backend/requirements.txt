@@ -33,10 +33,6 @@ docker==6.1.3
 flask-socketio
 paramiko
 gevent
-gevent-websocket# JWT - JSON Web Token
+gevent-websocket # JWT - JSON Web Token
 # Used for secure authentication between frontend and backend
 PyJWT==2.8.0
-
-# Google Auth
-google-auth
-requests

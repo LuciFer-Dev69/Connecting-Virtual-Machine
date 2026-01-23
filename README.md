@@ -1,4 +1,4 @@
-# 🛡️ Professional CTF & Security Lab Platform
+# 🛡️ Chakra Security Lab Platform
 
 A high-fidelity, containerized Capture The Flag (CTF) ecosystem designed for immersive security training. This platform integrates a modern React frontend, a robust Flask backend, and a dedicated **PwnBox** environment pre-configured with real-world vulnerabilities.
 
@@ -28,17 +28,36 @@ docker-compose up --build -d
 | **🔌 Backend API** | `http://localhost:5000` | Support services and AI hint engine. |
 | **🐚 PwnBox SSH** | `localhost:2222` | Direct terminal access (`ssh chakra@localhost -p 2222`). |
 
-### ⚔️ Real-Life Web Challenges (PwnBox Internal)
-These labs are hosted inside the `chakra_pwnbox` container and are accessible through the platform's "Web View" or directly:
+---
 
-| Lab Name | Port | Vulnerability Focus |
+## ⚔️ Red Team Roadmap (Tool-Only Curriculum)
+The platform now features a strictly curated **30-challenge roadmap** designed to master core security tools.
+
+### **Zero Friction Access**
+- **Public Entry**: The roadmap is now accessible to guests without mandatory login.
+- **Global Unlock**: All tiers (Easy, Medium, Hard) are **instantly unlocked**. Users can jump to advanced labs immediately without completing previous levels.
+- **Progress Sync**: Login is only required to submit flags and save permanent progress.
+
+### **Curriculum Breakdown**
+- **10 Easy Labs**: Service enumeration, `nmap`, and basic info leaks.
+- **10 Medium Labs**: Credential stuffing, LFI, and intermediate exploitation.
+- **10 Hard Labs**: Advanced Prototype Pollution, CSP Bypasses, Supply Chain attacks, and Race Conditions.
+
+---
+
+## 🛡️ Admin & Super Admin Features
+The platform includes a robust administrative backend for Lab Managers.
+
+#### **Default Credentials**
+| Role | Email | Password |
 | :--- | :--- | :--- |
-| **Phantom Login (XSS)** | `5050` | Reflected XSS & Session Hijacking. |
-| **Phantom Profile** | `6060` | File Upload Misconfiguration & RCE. |
-| **Phantom Login (SQLi)** | `7010` | Authentication Bypass via SQL Injection. |
-| **PHANTOM.TECH** | `9090` | **Level: Advanced** - Business Logic & Price Tampering. |
-| **SQLi Login Lab** | `3003` | Classic SQLi on a simplified login portal. |
-| **Auth API Lab** | `3004` | API-based authentication vulnerabilities. |
+| **Super Admin** | `admin@chakra.com` | `Admin@1234` |
+| **PwnBox SSH** | `chakra` (user) | `user` |
+
+#### **Enhanced Admin Experience**
+- **Sidebar Integration**: Super Admins now have an **Admin Panel** shortcut directly in the main sidebar for instant navigation.
+- **Lab Management**: CRUD for challenges, roadmap configuration, and audit logging.
+- **User Governance**: Direct control over user accounts, including suspension and reactivation.
 
 ---
 
@@ -47,16 +66,9 @@ These labs are hosted inside the `chakra_pwnbox` container and are accessible th
 ### **1. PwnBox Architecture**
 The heart of the project is the `chakra_pwnbox`, a hardened Ubuntu environment that acts as both the attacker's terminal and a host for vulnerable services.
 - **Tools Included:** `curl`, `wget`, `netcat`, `nmap`, `python3`, `git`.
-- **Logic:** Each Real-Life challenge runs as a separate micro-service (Flask/Node.js) on isolated ports within the container.
 
 ### **2. AI Hint Engine (Gemini Pro)**
-The platform features an integrated AI assistant that reads the context of your current challenge and provides tailored technical hints, bridging the gap between theory and exploitation.
-
-### **3. Real-Life Web Suite**
-- **XSS Lab (Port 5050):** Uses an EJS-based search system that reflects raw input.
-- **File Upload (Port 6060):** A Python Flask app with weak extension blacklisting.
-- **SQLi (Port 7010):** A SQLite3 backend vulnerable to single-quote escapes in the login field.
-- **Business Logic (Port 9090):** A premium e-commerce storefront (PHANTOM.TECH) that trusts client-sent JSON price fields during checkout.
+The platform features an integrated AI assistant that reads the context of your current challenge and provides tailored technical hints.
 
 ---
 
@@ -64,35 +76,23 @@ The platform features an integrated AI assistant that reads the context of your 
 
 ```text
 ├── Backend/
-│   ├── phantom-shop/         # Sourcess for all Real-Life challenge backends
+│   ├── phantom-shop/         # Sources for all Real-Life challenge backends
 │   ├── Dockerfile.pwnbox     # Configuration for the isolated lab container
-│   └── app.py                # Main Platform API
+│   ├── app.py                # Main Platform API (Public & Private routes)
+│   └── init_db.py            # Initialization script for 30-lab curriculum
 ├── Frontend/
-│   ├── src/pages/           # Specialized UI for each challenge type
-│   └── components/          # WebTerminal and navigation components
-├── images/                   # High-fidelity assets for the e-commerce lab
+│   ├── src/pages/           # Specialized UI (Roadmaps, Grid, Admin)
+│   └── components/          # Sidebar with Admin shortcut & WebTerminal
 └── docker-compose.yml       # Global orchestration
 ```
 
 ---
 
-### 🔒 Post-Installation & Access
-After launching, initialize the challenge database to populate the dashboard:
+### 🔒 Post-Installation
+After launching, initialize the challenge database to populate the 30-lab curriculum:
 ```bash
 docker exec -it chakra_backend python init_db.py
 ```
-
-#### **Default Credentials**
-| Role | Email | Password |
-| :--- | :--- | :--- |
-| **Super Admin** | `admin@chakra.com` | `Admin@1234` |
-| **PwnBox SSH** | `chakra` (user) | `user` |
-| **MySQL Root** | `root` | `rootpassword` |
-
-#### **Admin Portal**
-Accessible at `http://localhost:3000/#/admin`.
-- **Features:** Challenge CRUD, User Suspension, Audit Logs, and Roadmap Management.
-- **RBAC:** Only users with the `admin` role can access this portal.
 
 ---
 

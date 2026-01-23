@@ -13,18 +13,15 @@ export default function Sidebar({ active }) {
   ];
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isAdmin = user.role === "admin" || user.role === "Super Admin";
 
   let finalItems = items;
-  /*
-  if (user.role === "admin") {
-    // For admin, only show Dashboard, Profile, and Admin Panel
+  if (isAdmin) {
     finalItems = [
-      { name: "Dashboard", key: "dashboard", icon: LayoutDashboard },
-      { name: "Profile", key: "profile", icon: User },
+      ...items,
       { name: "Admin Panel", key: "admin", icon: Shield }
     ];
   }
-  */
 
   return (
     <aside style={{ width: "220px", background: "var(--sidebar-bg)", color: "var(--text)", padding: "20px", minHeight: "100vh", borderRight: "1px solid var(--card-border)" }}>

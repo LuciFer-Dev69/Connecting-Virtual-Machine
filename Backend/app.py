@@ -19,17 +19,14 @@ from flask_socketio import SocketIO, emit
 import jwt
 import datetime
 from functools import wraps
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
 
 app = Flask(__name__)
 # Initialize SocketIO with CORS allowed
 socketio = SocketIO(app, cors_allowed_origins="*")
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"])
 
 # ==================== CONFIG & SECURITY ====================
 JWT_SECRET_KEY = os.getenv("JWT_SECRET", "Chakra_Super_Secret_Key_2024")
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com")
 
 def token_required(f):
     @wraps(f)
@@ -231,70 +228,6 @@ def login():
     except Exception as e:
         print(f"Login error: {e}")
         return jsonify({"error": "Server error during login"}), 500
-
-
-@app.route('/api/auth/google-login', methods=['POST'])
-def google_login():
-    try:
-        data = request.get_json()
-        token = data.get('id_token')
-        
-        if not token:
-            return jsonify({"error": "Google token missing"}), 400
-
-        # Verify Google Token
-        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
-        
-        email = idinfo['email']
-        name = idinfo.get('name', 'User')
-        
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = cursor.fetchone()
-        
-        if not user:
-            # Auto-create user
-            cursor.execute(
-                "INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
-                (name, email, "GOOGLE_AUTH_NO_PASSWORD", "user")
-            )
-            conn.commit()
-            new_id = cursor.lastrowid
-            
-            # Create stats
-            cursor.execute(
-                "INSERT INTO user_stats (user_id) VALUES (%s)",
-                (new_id,)
-            )
-            conn.commit()
-            
-            cursor.execute("SELECT * FROM users WHERE user_id = %s", (new_id,))
-            user = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
-
-        if user.get('is_suspended'):
-            return jsonify({"error": "Account suspended"}), 403
-
-        # Generate JWT Token
-        app_token = jwt.encode({
-            'user_id': user['user_id'],
-            'role': user['role'],
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-        }, JWT_SECRET_KEY, algorithm="HS256")
-
-        # Clean user object
-        if 'password' in user: del user['password']
-
-        return jsonify({"user": user, "token": app_token}), 200
-
-    except Exception as e:
-        print(f"Google Login error: {e}")
-        return jsonify({"error": "Google authentication failed"}), 401
-
 
 # ==================== CHALLENGE ROUTES ====================
 
@@ -964,6 +897,21 @@ def delete_challenge(current_user_id, current_role, challenge_id):
 
 # ==================== ROADMAP ROUTES ====================
 
+@app.route('/api/roadmap/red-tools', methods=['GET'])
+def get_red_tools_roadmap():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM roadmaps WHERE name = 'Red Team (Tool-Only)' LIMIT 1")
+        roadmap = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if not roadmap:
+            return jsonify({"error": "Roadmap not found"}), 404
+        return jsonify(roadmap), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/admin/roadmaps', methods=['GET'])
 @admin_required
 def get_admin_roadmaps(current_user_id, current_role):
@@ -975,6 +923,162 @@ def get_admin_roadmaps(current_user_id, current_role):
         cursor.close()
         conn.close()
         return jsonify(roadmaps), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- User Roadmap Routes ---
+
+@app.route('/api/roadmap/red-team', methods=['GET'])
+def get_red_team_roadmap():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM roadmaps WHERE name = 'Red Team Roadmap' LIMIT 1")
+        roadmap = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if not roadmap:
+            return jsonify({"error": "Roadmap not found"}), 404
+        return jsonify(roadmap), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/roadmap/challenges/<int:roadmap_id>', methods=['GET'])
+def get_roadmap_challenges(roadmap_id):
+    try:
+        # Check for optional token
+        token = request.headers.get('Authorization')
+        current_user_id = None
+        if token and token.startswith('Bearer '):
+            try:
+                token = token.split(" ")[1]
+                data = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+                current_user_id = data['user_id']
+            except:
+                pass
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get all challenges in this roadmap
+        cursor.execute("""
+            SELECT c.*, rc.order_index 
+            FROM challenges c
+            JOIN roadmap_challenges rc ON c.id = rc.challenge_id
+            WHERE rc.roadmap_id = %s
+            ORDER BY rc.order_index ASC
+        """, (roadmap_id,))
+        challenges = cursor.fetchall()
+        
+        # Get user progress for this roadmap
+        cursor.execute("""
+            SELECT challenge_id, status 
+            FROM user_progress 
+            WHERE user_id = %s AND roadmap_id = %s
+        """, (current_user_id, roadmap_id))
+        progress = {row['challenge_id']: row['status'] for row in cursor.fetchall()}
+        
+        # Process status for each challenge
+        processed_challenges = []
+        is_previous_completed = True # First challenge is unlocked by default
+        
+        for idx, c in enumerate(challenges):
+            user_status = progress.get(c['id'], 'unlocked')
+            
+            # For now, all content is available (unlocked) unless already completed
+            status = 'unlocked' if user_status != 'completed' else 'completed'
+            
+            # Clean sensitive data
+            if 'flag' in c: del c['flag']
+            
+            c['status'] = status
+            processed_challenges.append(c)
+
+        cursor.close()
+        conn.close()
+        return jsonify(processed_challenges), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/submit-flag', methods=['POST'])
+@token_required
+def submit_roadmap_flag(current_user_id, current_role):
+    try:
+        data = request.get_json()
+        challenge_id = data.get('challenge_id')
+        roadmap_id = data.get('roadmap_id')
+        flag = data.get('flag')
+        
+        if not challenge_id or not roadmap_id or not flag:
+            return jsonify({"error": "Missing required fields"}), 400
+            
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Verify flag from dedicated flags table
+        cursor.execute("SELECT f.flag_hash, c.points FROM flags f JOIN challenges c ON f.challenge_id = c.id WHERE f.challenge_id = %s", (challenge_id,))
+        result = cursor.fetchone()
+        
+        # Fallback to challenges table if flags table is not populated for this cid
+        if not result:
+            cursor.execute("SELECT flag as flag_hash, points FROM challenges WHERE id = %s", (challenge_id,))
+            result = cursor.fetchone()
+        
+        if not result:
+            return jsonify({"error": "Challenge not found"}), 404
+            
+        is_correct = flag.strip() == result['flag_hash'].strip()
+        
+        if is_correct:
+            # Check if first time completion
+            cursor.execute("""
+                SELECT id FROM user_progress 
+                WHERE user_id = %s AND roadmap_id = %s AND challenge_id = %s AND status = 'completed'
+            """, (current_user_id, roadmap_id, challenge_id))
+            
+            if not cursor.fetchone():
+                # Record completion
+                cursor.execute("""
+                    INSERT INTO user_progress (user_id, roadmap_id, challenge_id, status, completed_at)
+                    VALUES (%s, %s, %s, 'completed', NOW())
+                    ON DUPLICATE KEY UPDATE status = 'completed', completed_at = NOW()
+                """, (current_user_id, roadmap_id, challenge_id))
+                
+                # Update user total points
+                cursor.execute("UPDATE users SET progress = progress + %s WHERE user_id = %s", (result['points'], current_user_id))
+                
+                # Update user stats
+                cursor.execute("""
+                    INSERT INTO user_stats (user_id, total_challenges) VALUES (%s, 1)
+                    ON DUPLICATE KEY UPDATE total_challenges = total_challenges + 1
+                """, (current_user_id,))
+                
+                conn.commit()
+            
+            cursor.close()
+            conn.close()
+            return jsonify({"success": True, "message": "🚩 FLAG CAPTURED! Access Granted to Next Level."}), 200
+        else:
+            cursor.close()
+            conn.close()
+            return jsonify({"success": False, "message": "❌ Invalid Flag. Security Alert Logged."}), 400
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/hint/<int:challenge_id>', methods=['GET'])
+@token_required
+def get_roadmap_hint(current_user_id, current_role, challenge_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT hint FROM challenges WHERE id = %s", (challenge_id,))
+        hint = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if not hint:
+            return jsonify({"error": "Hint not found"}), 404
+        return jsonify({"hint": hint['hint']}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1171,4 +1275,4 @@ def handle_ssh_input(data):
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
     # run with socketio
-    socketio.run(app, host='0.0.0.0', port=port, debug=True)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True, use_reloader=False)
