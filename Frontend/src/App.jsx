@@ -32,6 +32,7 @@ import UploadChallenge from "./pages/UploadChallenge";
 import SQLiChallenge from "./pages/SQLiChallenge";
 import BusinessLogicChallenge from "./pages/BusinessLogicChallenge";
 import DefensiveChallenge from "./pages/DefensiveChallenge";
+import AIPromptInjectionChallenge from "./pages/AIPromptInjectionChallenge";
 
 
 
@@ -138,6 +139,7 @@ function parseHash() {
   if (parts[0] === "admin") return { route: "admin" };
   if (parts[0] === "red-team") return { route: "red-team" };
   if (parts[0] === "blue-team") return { route: "blue-team" };
+  if (parts[0] === "ai-prompt-injection") return { route: "ai-prompt-injection" };
 
   return { route: "landing" };
 }
@@ -163,7 +165,7 @@ export default function App() {
   const isAdmin = user?.role === "admin";
 
   const protectedRoutes = [
-    "dashboard", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge", "defensive-challenge"
+    "dashboard", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge", "defensive-challenge", "ai-prompt-injection"
   ];
 
   if (protectedRoutes.includes(route.route) && !isAuthed) {
@@ -225,6 +227,8 @@ export default function App() {
         return <Challenges initialView="red-roadmap" />;
       case "blue-team":
         return <Challenges initialView="blue-roadmap" />;
+      case "ai-prompt-injection":
+        return <AIPromptInjectionChallenge />;
       case "admin":
         if (!isAdmin) {
           window.location.hash = "#/dashboard";

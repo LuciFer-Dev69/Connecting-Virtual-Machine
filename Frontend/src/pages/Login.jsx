@@ -99,7 +99,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <Navbar />
       <div style={{
         display: "flex",
@@ -109,14 +109,14 @@ export default function Login() {
         padding: "20px"
       }}>
         <div style={{
-          background: "rgba(255, 255, 255, 0.05)",
+          background: "var(--card-bg)",
           backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          borderRadius: "20px",
+          border: "1px solid var(--card-border)",
+          borderRadius: "24px",
           padding: "50px 40px",
           maxWidth: "450px",
           width: "100%",
-          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)"
+          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4)"
         }}>
           <h1 style={{
             fontSize: "32px",
@@ -162,15 +162,15 @@ export default function Login() {
                 style={{
                   width: "100%",
                   padding: "12px 15px",
-                  background: "rgba(255, 255, 255, 0.08)",
-                  border: `1px solid ${emailError ? "#ff4d4d" : "rgba(255, 255, 255, 0.2)"}`,
-                  borderRadius: "10px",
-                  color: "#fff",
+                  background: "var(--input-bg)",
+                  border: `1px solid ${emailError ? "var(--danger)" : "var(--card-border)"}`,
+                  borderRadius: "12px",
+                  color: "var(--text)",
                   fontSize: "15px",
                   outline: "none",
                   transition: "all 0.3s ease"
                 }}
-                onFocus={(e) => !emailError && (e.target.style.borderColor = "#00d4ff")}
+                onFocus={(e) => !emailError && (e.target.style.borderColor = "var(--cyan)")}
               />
               {emailError && (
                 <div style={{
@@ -252,15 +252,15 @@ export default function Login() {
               style={{
                 width: "100%",
                 padding: "14px",
-                background: loading ? "#555" : "linear-gradient(90deg, #00d4ff, #00ff88)",
-                color: "#000",
+                background: loading ? "var(--button-bg)" : "linear-gradient(90deg, var(--cyan), var(--accent))",
+                color: "#fff",
                 fontSize: "16px",
-                fontWeight: "bold",
+                fontWeight: "600",
                 border: "none",
-                borderRadius: "10px",
+                borderRadius: "12px",
                 cursor: loading ? "not-allowed" : "pointer",
-                transition: "transform 0.2s ease",
-                boxShadow: "0 5px 20px rgba(0, 212, 255, 0.3)"
+                transition: "all 0.3s ease",
+                boxShadow: loading ? "none" : "0 8px 20px var(--glow)"
               }}
               onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = "translateY(-2px)")}
               onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = "translateY(0)")}

@@ -19,6 +19,7 @@ export default function Challenges({ initialView = "selection" }) {
   const [filterDifficulty, setFilterDifficulty] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [operatorMode, setOperatorMode] = useState("training"); // "operator" or "training"
   const CHALLENGES_PER_PAGE = 9;
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -126,6 +127,10 @@ export default function Challenges({ initialView = "selection" }) {
 
   const handleChallengeClick = (e, challenge, type) => {
     if (type === "red") {
+      if (challenge.title === "AI Prompt Injection") {
+        window.location.hash = "#/ai-prompt-injection";
+        return;
+      }
       e.preventDefault();
       if (challenge.status !== "locked") {
         setSelectedChallenge(challenge);
@@ -204,15 +209,17 @@ export default function Challenges({ initialView = "selection" }) {
           `}
         </style>
         <div className="modal-content" style={{
-          background: "#fff", width: "100%",
+          background: "var(--card-bg)", width: "100%",
           maxWidth: "550px", borderRadius: "24px", padding: "40px", position: "relative",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.3)", color: "#111"
+          boxShadow: isRed ? "var(--red-glow-intense)" : "0 20px 50px rgba(0,0,0,0.5)",
+          color: "var(--text)",
+          border: `2px solid ${color}`
         }}>
           <button
             onClick={() => setSelectedChallenge(null)}
-            style={{ position: "absolute", top: "25px", right: "25px", background: "#f8f9fa", border: "none", color: "#666", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "0.2s" }}
-            onMouseEnter={(e) => e.target.style.background = "#eee"}
-            onMouseLeave={(e) => e.target.style.background = "#f8f9fa"}
+            style={{ position: "absolute", top: "25px", right: "25px", background: "var(--bg-secondary)", border: "none", color: "var(--muted)", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "0.2s" }}
+            onMouseEnter={(e) => e.target.style.background = "var(--card-border)"}
+            onMouseLeave={(e) => e.target.style.background = "var(--bg-secondary)"}
           >
             ✕
           </button>
@@ -221,13 +228,13 @@ export default function Challenges({ initialView = "selection" }) {
             <Activity size={14} /> ACTIVE LABORATORY
           </div>
 
-          <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#111", marginBottom: "10px" }}>{selectedChallenge.title}</h2>
+          <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--text)", marginBottom: "10px" }}>{selectedChallenge.title}</h2>
           <div style={{ display: "flex", gap: "15px", marginBottom: "25px" }}>
-            <span style={{ fontSize: "12px", color: "#666", background: "#f1f3f5", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>{selectedChallenge.difficulty}</span>
-            <span style={{ fontSize: "12px", color: "#666", background: "#f1f3f5", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>{selectedChallenge.points} Points</span>
+            <span style={{ fontSize: "12px", color: "var(--muted)", background: "var(--input-bg)", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>{selectedChallenge.difficulty}</span>
+            <span style={{ fontSize: "12px", color: "var(--muted)", background: "var(--input-bg)", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>{selectedChallenge.points} Points</span>
           </div>
 
-          <p style={{ color: "#444", fontSize: "15px", lineHeight: "1.6", margin: "0 0 30px 0" }}>
+          <p style={{ color: "var(--muted)", fontSize: "15px", lineHeight: "1.6", margin: "0 0 30px 0" }}>
             {selectedChallenge.description}
           </p>
 
@@ -238,12 +245,13 @@ export default function Challenges({ initialView = "selection" }) {
                 onChange={(e) => setFlagInput(e.target.value)}
                 placeholder="Enter capture flag format: FLAG{...}"
                 style={{
-                  flex: 1, background: "#f8f9fa", border: "2px solid #eee", color: "#111",
-                  padding: "14px 18px", borderRadius: "12px", outline: "none", fontFamily: "monospace",
+                  flex: 1, background: "var(--bg-secondary)", border: `1px solid var(--card-border)`, color: "var(--text)",
+                  padding: "14px 18px", borderRadius: "12px", outline: "none",
+                  fontFamily: "'JetBrains Mono', monospace",
                   fontSize: "14px", transition: "0.2s"
                 }}
                 onFocus={(e) => e.target.style.borderColor = color}
-                onBlur={(e) => e.target.style.borderColor = "#eee"}
+                onBlur={(e) => e.target.style.borderColor = "var(--card-border)"}
               />
               <button
                 onClick={user.user_id ? submitFlag : () => setSubmissionMsg({ text: "Please login to submit flags.", type: "error" })}
@@ -264,17 +272,17 @@ export default function Challenges({ initialView = "selection" }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #eee", paddingTop: "25px" }}>
             <button
               onClick={fetchHint}
-              style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}
+              style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}
             >
               <Zap size={14} /> Need a hint?
             </button>
-            <a href="#/pwnbox" style={{ background: "#111", color: "#fff", textDecoration: "none", padding: "10px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+            <a href="#/pwnbox" style={{ background: "var(--button-bg)", color: "var(--text)", textDecoration: "none", padding: "10px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px", border: "1px solid var(--card-border)" }}>
               <Terminal size={14} /> Open PwnBox
             </a>
           </div>
 
           {hint && (
-            <div style={{ marginTop: "20px", padding: "15px", background: "#f8f9fa", border: "1px solid #eee", borderRadius: "12px", color: "#666", fontSize: "13px", fontFamily: "monospace" }}>
+            <div style={{ marginTop: "20px", padding: "15px", background: "var(--input-bg)", border: "1px solid var(--card-border)", borderRadius: "12px", color: "var(--muted)", fontSize: "13px", fontFamily: "monospace" }}>
               💡 {hint}
             </div>
           )}
@@ -389,10 +397,11 @@ export default function Challenges({ initialView = "selection" }) {
     </div>
   );
 
-  const RoadmapScreen = ({ type }) => {
+  const renderRoadmapScreen = (type) => {
     const isRed = type === "red";
     const baseChallenges = isRed ? redChallenges : blueChallenges;
-    const color = isRed ? "#ff0044" : "#00d4ff";
+    const color = isRed ? "var(--red)" : "var(--blue)";
+    const glowColor = isRed ? "var(--red-glow-soft)" : "var(--blue-glow-soft)";
 
     const filteredChallenges = baseChallenges.filter(c => {
       const matchesSearch = (c.title || c.name || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -411,19 +420,113 @@ export default function Challenges({ initialView = "selection" }) {
 
     if (loading && isRed) {
       return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "#fff", background: "#000" }}>
-          <div style={{ fontFamily: "monospace", textAlign: "center" }}>
-            <div className="spinner" style={{ marginBottom: "20px" }}></div>
-            // INITIALIZING_OFFENSIVE_LABS...
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          color: "var(--red)",
+          background: "var(--bg)",
+          fontFamily: "'JetBrains Mono', monospace"
+        }}>
+          <div style={{ textAlign: "left", width: "300px" }}>
+            <div className="spinner" style={{ marginBottom: "20px", borderTopColor: "var(--red)" }}></div>
+            <div style={{ marginBottom: "5px" }}>[ SYSTEM_BOOT_SEQUENCE: OK ]</div>
+            <div style={{ marginBottom: "5px" }}>[ DECRYPTING_LAB_DATA: 84% ]</div>
+            <div style={{ marginBottom: "5px" }}>[ BYPASSING_FIREWALLS: OK ]</div>
+            <div style={{ color: "var(--text)", marginTop: "10px" }}>// INITIATING_BREACH...</div>
           </div>
         </div>
       );
     }
 
     return (
-      <div style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto", animation: "fadeIn 0.5s ease" }}>
+      <div style={{
+        padding: "40px",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        animation: "fadeIn 0.5s ease",
+        position: "relative",
+        minHeight: "100vh",
+        background: isRed ? `radial-gradient(circle at top right, ${glowColor} 0%, transparent 40%)` : "none"
+      }}>
+        {isRed && (
+          <style>
+            {`
+              @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
+
+              @keyframes cyberpunk-glitch {
+                0% { clip-path: inset(40% 0 61% 0); transform: skew(0.58deg); }
+                5% { clip-path: inset(92% 0 1% 0); transform: skew(0.58deg); }
+                10% { clip-path: inset(43% 0 1% 0); transform: skew(0.58deg); }
+                15% { clip-path: inset(25% 0 58% 0); transform: skew(0.58deg); }
+                20% { clip-path: inset(75% 0 23% 0); transform: skew(0.58deg); }
+                25% { clip-path: inset(10% 0 83% 0); transform: skew(0.58deg); }
+                30% { clip-path: inset(58% 0 43% 0); transform: skew(0.58deg); }
+                35% { clip-path: inset(10% 0 83% 0); transform: skew(0.58deg); }
+                40% { clip-path: inset(100% 0 0 0); transform: skew(0.58deg); }
+                45% { clip-path: inset(43% 0 1% 0); transform: skew(0.58deg); }
+                50% { clip-path: inset(25% 0 58% 0); transform: skew(0.58deg); }
+                55% { clip-path: inset(75% 0 23% 0); transform: skew(0.58deg); }
+                60% { clip-path: inset(10% 0 83% 0); transform: skew(0.58deg); }
+                65% { clip-path: inset(58% 0 43% 0); transform: skew(0.58deg); }
+                70% { clip-path: inset(10% 0 83% 0); transform: skew(0.58deg); }
+                75% { clip-path: inset(40% 0 61% 0); transform: skew(0.58deg); }
+                80% { clip-path: inset(92% 0 1% 0); transform: skew(0.58deg); }
+                85% { clip-path: inset(43% 0 1% 0); transform: skew(0.58deg); }
+                90% { clip-path: inset(25% 0 58% 0); transform: skew(0.58deg); }
+                95% { clip-path: inset(75% 0 23% 0); transform: skew(0.58deg); }
+                100% { clip-path: inset(100% 0 0 0); transform: skew(0.58deg); }
+              }
+
+              .cyberpunk-header {
+                position: relative;
+                color: #fcee0a; /* Cyberpunk Yellow */
+                font-family: 'Space Grotesk', 'Inter', sans-serif;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 4px;
+                text-shadow: var(--red-glow);
+                transform: skew(-10deg);
+              }
+
+              .cyberpunk-header::before {
+                left: 2px;
+                text-shadow: -2px 0 var(--blue);
+                clip: rect(44px, 450px, 56px, 0);
+                animation: cyberpunk-glitch 2s infinite linear alternate-reverse;
+              }
+
+              .cyberpunk-header::after {
+                left: -2px;
+                text-shadow: -2px 0 var(--red), 2px 2px var(--red);
+                animation: cyberpunk-glitch 3s infinite linear alternate-reverse;
+              }
+
+              .system-warning-bar {
+                background: repeating-linear-gradient(45deg, var(--red), var(--red) 10px, var(--bg) 10px, var(--bg) 20px);
+                height: 6px; width: 100%; margin-bottom: 25px; opacity: 0.8;
+                box-shadow: 0 0 15px rgba(255,0,68,0.3);
+              }
+              
+              .red-team-bg-pattern {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background-image: 
+                  radial-gradient(rgba(255, 0, 68, 0.05) 1px, transparent 0),
+                  linear-gradient(rgba(255, 0, 68, 0.03) 1px, transparent 1px);
+                background-size: 30px 30px, 100% 10px;
+                pointer-events: none;
+                z-index: -1;
+              }
+            `}
+          </style>
+        )}
+        {isRed && <div className="red-team-bg-pattern" />}
+
         {/* Header Controls */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "40px", flexWrap: "wrap", gap: "20px" }}>
+        {isRed && <div className="system-warning-bar" />}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", flexWrap: "wrap", gap: "20px" }}>
           <div>
             <button
               onClick={() => {
@@ -431,26 +534,110 @@ export default function Challenges({ initialView = "selection" }) {
                 setView("selection");
               }}
               style={{
-                background: "none", border: "1px solid rgba(255,255,255,0.1)", color: "var(--muted)",
-                padding: "8px 16px", borderRadius: "8px", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: "8px",
-                fontSize: "13px", fontWeight: "600", transition: "0.2s"
+                background: "none", border: "1px solid var(--card-border)", color: "var(--muted)",
+                padding: "6px 12px", borderRadius: "6px", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "6px",
+                fontSize: "12px", fontWeight: "600", transition: "0.2s",
+                marginBottom: "15px"
               }}
-              onMouseEnter={(e) => e.target.style.background = "rgba(255,255,255,0.05)"}
+              onMouseEnter={(e) => e.target.style.background = "var(--bg-secondary)"}
               onMouseLeave={(e) => e.target.style.background = "none"}
             >
-              <ArrowLeft size={14} /> BACK
+              <ArrowLeft size={14} /> BACK_TO_SELECTION
             </button>
-            <h1 style={{ fontSize: "32px", fontWeight: "900", color: "#fff", margin: "15px 0 5px 0" }}>
-              {isRed ? "Red Team Labs" : "Blue Team Labs"}
+            <h1
+              data-text={isRed ? "SYSTEM COMPROMISED: RED TEAM" : "DEFENSIVE OPERATIONS: BLUE TEAM"}
+              className={isRed ? "cyberpunk-header" : ""}
+              style={{
+                fontSize: "32px",
+                fontWeight: "900",
+                color: "var(--text)",
+                margin: "0 0 10px 0",
+              }}
+            >
+              {isRed ? "SYSTEM COMPROMISED: RED TEAM" : "BLUE TEAM OPERATIONS"}
             </h1>
-            <p style={{ color: "var(--muted)", fontSize: "14px", margin: 0 }}>
-              Guided labs and lessons teaching you specific cyber topics.
+            <p style={{ color: isRed ? "var(--red)" : "var(--blue)", fontSize: "12px", margin: "0 0 15px 0", fontFamily: "'JetBrains Mono', monospace", fontWeight: "700", opacity: 0.8 }}>
+              {isRed ? "OPERATION STATUS: ACTIVE · AUTHORIZED RED TEAM OPERATOR" : "SYSTEM STATUS: SECURE · AUTHORIZED BLUE TEAM ANALYST"}
             </p>
+
+            {/* Progress Bar */}
+            <div style={{ width: "300px", marginTop: "15px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "var(--muted)", marginBottom: "5px", fontFamily: "'JetBrains Mono', monospace" }}>
+                <span>PROGRESS</span>
+                <span>{stats.challengesCompleted} / {isRed ? redChallenges.length : blueChallenges.length} OPS</span>
+              </div>
+              <div style={{ height: "4px", background: "var(--bg-secondary)", borderRadius: "2px", overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${((stats.challengesCompleted / (isRed ? redChallenges.length : blueChallenges.length)) || 0) * 100}%`,
+                  background: color,
+                  boxShadow: `0 0 10px ${color}`
+                }} />
+              </div>
+            </div>
           </div>
 
-          <div style={{ textAlign: "right" }}>
-            <span style={{ fontSize: "24px", fontWeight: "900", color: color }}>{stats.points} <span style={{ fontSize: "14px", color: "var(--muted)" }}>PTS</span></span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            {/* Mode Toggle */}
+            <div style={{
+              display: "flex",
+              background: "var(--bg-secondary)",
+              padding: "4px",
+              borderRadius: "8px",
+              border: "1px solid var(--card-border)",
+              alignSelf: "flex-end"
+            }}>
+              <button
+                onClick={() => setOperatorMode("operator")}
+                style={{
+                  padding: "6px 12px", border: "none", borderRadius: "6px", cursor: "pointer",
+                  fontSize: "10px", fontWeight: "800", letterSpacing: "1.5px",
+                  background: operatorMode === "operator" ? color : "transparent",
+                  color: operatorMode === "operator" ? "#fff" : "var(--muted)",
+                  transition: "0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                }}
+              >
+                ◉ OPERATOR
+              </button>
+              <button
+                onClick={() => setOperatorMode("training")}
+                style={{
+                  padding: "6px 12px", border: "none", borderRadius: "6px", cursor: "pointer",
+                  fontSize: "10px", fontWeight: "800", letterSpacing: "1.5px",
+                  background: operatorMode === "training" ? color : "transparent",
+                  color: operatorMode === "training" ? "#fff" : "var(--muted)",
+                  transition: "0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                }}
+              >
+                ○ TRAINING
+              </button>
+            </div>
+
+            <div style={{
+              background: "var(--card-bg)",
+              padding: "20px",
+              borderRadius: "16px",
+              border: "1px solid var(--card-border)",
+              minWidth: "200px",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+            }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "11px", color: "var(--muted)", fontWeight: "600" }}>RANK</span>
+                  <span style={{ fontSize: "12px", color: "var(--text)", fontWeight: "800", letterSpacing: "1px" }}>INITIATE</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "11px", color: "var(--muted)", fontWeight: "600" }}>PTS</span>
+                  <span style={{ fontSize: "18px", color: color, fontWeight: "900" }}>{stats.points}</span>
+                </div>
+                <div style={{ height: "1px", background: "var(--card-border)", margin: "5px 0" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "11px", color: "var(--muted)", fontWeight: "600" }}>STREAK</span>
+                  <span style={{ fontSize: "12px", color: "var(--success)", fontWeight: "800" }}>0 DAYS</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -462,11 +649,12 @@ export default function Challenges({ initialView = "selection" }) {
             gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             gap: "20px",
             marginBottom: "40px",
-            background: "rgba(255,255,255,0.03)",
+            background: "var(--card-bg)",
             padding: "24px",
             borderRadius: "16px",
-            border: "1px solid rgba(255,255,255,0.1)",
-            alignItems: "center"
+            border: `1px solid var(--card-border)`,
+            alignItems: "center",
+            boxShadow: isRed ? "0 0 20px rgba(255,0,68,0.1)" : "none"
           }}
         >
           <style>
@@ -488,56 +676,69 @@ export default function Challenges({ initialView = "selection" }) {
           </style>
 
           <div style={{ position: "relative" }}>
-            <Search style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: "#666" }} size={18} />
+            <Search style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: "var(--muted)", opacity: 0.5 }} size={18} />
             <input
-              placeholder="Search challenges..."
+              placeholder="> locate challenge..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
-                width: "100%", background: "#111", border: "1px solid #333", borderRadius: "12px",
-                padding: "14px 15px 14px 48px", color: "#fff", outline: "none", fontSize: "14px",
+                width: "100%",
+                background: "var(--bg)",
+                border: "1px solid var(--card-border)",
+                borderRadius: "12px",
+                padding: "14px 15px 14px 48px",
+                color: "var(--text)",
+                outline: "none",
+                fontSize: "14px",
+                fontFamily: "'JetBrains Mono', monospace",
                 transition: "all 0.2s ease",
                 boxSizing: "border-box"
               }}
               onFocus={(e) => e.target.style.borderColor = color}
-              onBlur={(e) => e.target.style.borderColor = "#333"}
+              onBlur={(e) => e.target.style.borderColor = "var(--card-border)"}
             />
           </div>
 
-          <select
-            value={filterDifficulty}
-            onChange={(e) => setFilterDifficulty(e.target.value)}
-            className="custom-select"
-            style={{
-              background: "#111", border: "1px solid #333", borderRadius: "12px",
-              padding: "14px", color: "#fff", cursor: "pointer",
-              outline: "none", fontSize: "14px", width: "100%",
-              boxSizing: "border-box"
-            }}
-          >
-            <option value="All">Difficulty</option>
-            <option>Easy</option>
-            <option>Medium</option>
-            <option>Hard</option>
-            <option>Insane</option>
-          </select>
+          <div style={{ position: "relative" }}>
+            <select
+              value={filterDifficulty}
+              onChange={(e) => setFilterDifficulty(e.target.value)}
+              className="custom-select"
+              style={{
+                background: "var(--bg)", border: "1px solid var(--card-border)", borderRadius: "12px",
+                padding: "14px", color: "var(--text)", cursor: "pointer",
+                outline: "none", fontSize: "14px", width: "100%",
+                boxSizing: "border-box", fontWeight: "600",
+                fontFamily: "'JetBrains Mono', monospace"
+              }}
+            >
+              <option value="All" style={{ background: "var(--bg)", color: "var(--text)" }}>Difficulty: All</option>
+              <option value="Easy" style={{ background: "var(--bg)", color: "#22c55e" }}>Easy (Neon Green)</option>
+              <option value="Medium" style={{ background: "var(--bg)", color: "#facc15" }}>Medium (Amber)</option>
+              <option value="Hard" style={{ background: "var(--bg)", color: "#ef4444" }}>Hard (Red)</option>
+              <option value="Insane" style={{ background: "var(--bg)", color: "var(--red)" }}>Insane (Crimson)</option>
+            </select>
+          </div>
 
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="custom-select"
-            style={{
-              background: "#111", border: "1px solid #333", borderRadius: "12px",
-              padding: "14px", color: "#fff", cursor: "pointer",
-              outline: "none", fontSize: "14px", width: "100%",
-              boxSizing: "border-box"
-            }}
-          >
-            <option value="All">Status</option>
-            <option value="unlocked">Available</option>
-            <option value="completed">Completed</option>
-            <option value="locked">Locked</option>
-          </select>
+          <div style={{ position: "relative" }}>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="custom-select"
+              style={{
+                background: "var(--bg)", border: "1px solid var(--card-border)", borderRadius: "12px",
+                padding: "14px", color: "var(--text)", cursor: "pointer",
+                outline: "none", fontSize: "14px", width: "100%",
+                boxSizing: "border-box", fontWeight: "600",
+                fontFamily: "'JetBrains Mono', monospace"
+              }}
+            >
+              <option value="All" style={{ background: "var(--bg)", color: "var(--text)" }}>Status: All</option>
+              <option value="unlocked" style={{ background: "var(--bg)", color: "var(--text)" }}>Available</option>
+              <option value="completed" style={{ background: "var(--bg)", color: "var(--success)" }}>Completed</option>
+              <option value="locked" style={{ background: "var(--bg)", color: "var(--muted)" }}>Locked</option>
+            </select>
+          </div>
         </div>
 
         {/* Challenge Grid */}
@@ -559,14 +760,13 @@ export default function Challenges({ initialView = "selection" }) {
                 key={challenge.id}
                 onClick={(e) => handleChallengeClick(e, challenge, type)}
                 style={{
-                  background: "#fff",
+                  background: "var(--card-bg)",
                   borderRadius: "16px",
                   padding: "24px",
                   position: "relative",
                   cursor: isLocked ? "not-allowed" : "pointer",
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  border: "1px solid #eee",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                  border: `1px solid var(--card-border)`,
                   display: "flex",
                   flexDirection: "column",
                   minHeight: "200px",
@@ -575,20 +775,26 @@ export default function Challenges({ initialView = "selection" }) {
                 }}
                 onMouseEnter={(e) => {
                   if (!isLocked) {
-                    e.currentTarget.style.transform = "translateY(-6px)";
-                    e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.1)";
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.borderColor = color;
+                    e.currentTarget.style.boxShadow = isRed ? "var(--red-glow-intense)" : "0 0 25px rgba(59,130,246,0.3)";
+                    const btn = e.currentTarget.querySelector('.init-btn');
+                    if (btn) btn.style.opacity = '1';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isLocked) {
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)";
+                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.borderColor = "var(--card-border)";
+                    const btn = e.currentTarget.querySelector('.init-btn');
+                    if (btn) btn.style.opacity = '0';
                   }
                 }}
               >
                 {/* Challenge Image */}
                 <div style={{
-                  height: "140px",
+                  height: "120px",
                   width: "calc(100% + 48px)",
                   margin: "-24px -24px 20px -24px",
                   backgroundImage: `url(${challenge.image_url || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&auto=format&fit=crop'})`,
@@ -596,40 +802,69 @@ export default function Challenges({ initialView = "selection" }) {
                   backgroundPosition: "center",
                   borderRadius: "15px 15px 0 0",
                   position: "relative",
-                  overflow: "hidden"
+                  overflow: "hidden",
+                  borderBottom: `1px solid var(--card-border)`
                 }}>
                   <div style={{
                     position: "absolute",
                     top: 0, left: 0, width: "100%", height: "100%",
-                    background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))"
+                    background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.6))"
                   }} />
                   {isLocked && (
                     <div style={{
                       position: "absolute",
                       top: 0, left: 0, width: "100%", height: "100%",
-                      background: "rgba(0,0,0,0.6)",
+                      background: "rgba(11,15,20,0.8)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       color: "#fff", backdropFilter: "blur(2px)"
                     }}>
                       <Lock size={32} opacity={0.5} />
                     </div>
                   )}
+
+                  {!isLocked && (
+                    <div className="init-btn" style={{
+                      position: "absolute",
+                      top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+                      background: isRed ? "linear-gradient(135deg, var(--red), var(--red-hover))" : "linear-gradient(135deg, var(--blue), #2563eb)",
+                      color: "#fff", fontSize: "11px", fontWeight: "800", padding: "8px 16px",
+                      borderRadius: "6px", boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+                      opacity: 0, transition: "0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                      letterSpacing: "1px", pointerEvents: "none"
+                    }}>
+                      [ INITIATE OP ]
+                    </div>
+                  )}
                 </div>
 
-                {/* Top Row: Title & Icon */}
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", alignItems: "flex-start" }}>
-                  <h3 style={{
-                    fontSize: "18px", fontWeight: "800", color: "#111", margin: 0,
-                    maxWidth: "75%", lineHeight: "1.2", letterSpacing: "-0.5px"
-                  }}>
-                    {challenge.title || challenge.name}
-                  </h3>
+                {/* Top Row: Title & Tool Tags */}
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", alignItems: "flex-start" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <h3 style={{
+                      fontSize: "15px", fontWeight: "800", color: "var(--text)", margin: 0,
+                      maxWidth: "75%", lineHeight: "1.2", letterSpacing: "-0.2px",
+                      fontFamily: "var(--font-heading)", textTransform: "uppercase"
+                    }}>
+                      {challenge.title || challenge.name}
+                    </h3>
+                    {operatorMode === "training" && (
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        {(challenge.category?.split(',') || [challenge.category || 'misc']).map(tag => (
+                          <span key={tag} style={{ fontSize: "9px", color: color, background: `${color}15`, padding: "2px 6px", borderRadius: "4px", fontWeight: "700", fontFamily: "'JetBrains Mono', monospace" }}>
+                            [ {tag.toLowerCase().trim()} ]
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <div style={{
-                    width: "36px", height: "36px", background: "#f8f9fa", borderRadius: "10px",
+                    width: "32px", height: "32px",
+                    background: "var(--bg-secondary)",
+                    borderRadius: "8px",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    border: "1px solid #eee"
+                    border: `1px solid var(--card-border)`,
                   }}>
-                    <Icon size={18} color={isLocked ? "#ccc" : (isRed ? "#ff0044" : "#00d4ff")} />
+                    <Icon size={16} color={isLocked ? "var(--muted)" : color} />
                   </div>
                 </div>
 
@@ -653,7 +888,7 @@ export default function Challenges({ initialView = "selection" }) {
                           background: ((challenge.difficulty === 'Easy' && i === 1) ||
                             (challenge.difficulty === 'Medium' && i <= 2) ||
                             (challenge.difficulty === 'Hard' && i <= 3) ||
-                            (challenge.difficulty === 'Insane' && i <= 3)) ? diffColor : "#eee"
+                            (challenge.difficulty === 'Insane' && i <= 3)) ? diffColor : "var(--card-border)"
                         }} />
                       ))}
                     </div>
@@ -664,9 +899,9 @@ export default function Challenges({ initialView = "selection" }) {
                   </div>
 
                   {isCompleted ? (
-                    <CheckCircle2 size={18} color="#51cf66" />
+                    <CheckCircle2 size={18} color={isRed ? "#ff0044" : "#51cf66"} />
                   ) : (
-                    <div style={{ color: "#adb5bd", transition: "0.2s" }} onMouseEnter={(e) => e.target.style.color = "#ff0044"}>
+                    <div style={{ color: isRed ? "rgba(255,0,68,0.4)" : "#adb5bd", transition: "0.2s" }} onMouseEnter={(e) => e.target.style.color = color}>
                       <Trophy size={16} />
                     </div>
                   )}
@@ -771,14 +1006,14 @@ export default function Challenges({ initialView = "selection" }) {
   };
 
   return (
-    <div style={{ background: "#000", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar />
       <div style={{ display: "flex" }}>
         <Sidebar active="challenges" />
-        <main style={{ flex: 1, minHeight: "100vh" }}>
+        <main style={{ flex: 1, minHeight: "calc(100vh - 80px)", position: "relative" }}>
           {view === "selection" && <SelectionScreen />}
-          {view === "red-roadmap" && <RoadmapScreen type="red" />}
-          {view === "blue-roadmap" && <RoadmapScreen type="blue" />}
+          {view === "red-roadmap" && renderRoadmapScreen("red")}
+          {view === "blue-roadmap" && renderRoadmapScreen("blue")}
         </main>
       </div>
     </div>

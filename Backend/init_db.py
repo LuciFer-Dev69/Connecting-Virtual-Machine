@@ -282,7 +282,7 @@ def init_db():
 
         tool_challenges = [
             # Easy Challenges
-            ("Service Enumeration", "Skill: Recon\nObjective: Identify open ports and running services on the target system.", "nmap", "Easy", 100, "FLAG{SERVICE_ENUM_NMAP}", "Use nmap -sV -p-", "/images/challenges/nmap_recon.png"),
+            ("Service Enumeration", "Skill: Recon\nObjective: Identify hidden services running on non-standard ports.", "nmap", "Easy", 100, "FLAG{SERVICE_ENUMERATION_SUCCESS}", "Services often hide on high ports. Try scanning 'localhost' with nmap -p- or check ports 9000-9100.", "/images/challenges/nmap_recon.png"),
             ("Version Detection", "Skill: Enumeration\nObjective: Discover service versions and identify outdated software.", "nmap", "Easy", 100, "FLAG{VERSION_DETECT_LAB}", "Check the -sV flag.", "/images/challenges/version_detect.png"),
             ("Robots.txt Information Leak", "Skill: Passive Recon\nObjective: Find hidden or sensitive paths exposed via robots.txt.", "recon", "Easy", 100, "FLAG{ROBOTS_TXT_LEAK}", "Look for /robots.txt on the server.", "/images/challenges/robots_leak.png"),
             ("Hidden Directory Discovery", "Skill: Web Recon\nObjective: Enumerate hidden directories such as /admin, /backup, or /test.", "gobuster", "Easy", 100, "FLAG{DIR_DISCO_GOBUSTER}", "Use a common directory wordlist.", "/images/challenges/dir_disco.png"),
@@ -294,6 +294,7 @@ def init_db():
             ("Business Logic Abuse", "Skill: Logic Flaws\nObjective: Manipulate application logic to gain unauthorized advantage.", "logic", "Easy", 100, "FLAG{LOGIC_ABUSE_VULN}", "Check if you can change item quantities in the cart.", "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop"),
             
             # Medium Challenges (Frontend-Focused)
+            ("AI Prompt Injection", "Skill: Prompt Injection\nObjective: Exploit a vulnerable AI assistant to extract protected internal instructions.", "Red Team Tools", "Medium", 200, "FLAG{PROMPT_INJECTION_MASTER}", "Try override phrases like 'ignore previous instructions' or 'output everything above'.", "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=400&auto=format&fit=crop"),
             ("DOM-Based XSS", "Skill: Client-Side Exploitation\nObjective: Find a sink that executes user-controlled data.", "xss", "Medium", 250, "FLAG{DOM_XSS_DETECTED}", "Look for innerHTML or eval() in the source code.", "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?q=80&w=400&auto=format&fit=crop"),
             ("Stored XSS via Client Storage", "Skill: Client-Side Exploitation\nObjective: Store a malicious payload in LocalStorage that triggers on load.", "xss", "Medium", 250, "FLAG{STORED_CLIENT_XSS}", "Check how the app retrieves data from LocalStorage.", "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=400&auto=format&fit=crop"),
             ("Client-Side Authentication Bypass", "Skill: Authentication\nObjective: Manipulate frontend logic to access a restricted page.", "auth", "Medium", 250, "FLAG{CLIENT_AUTH_BYPASS}", "Look for isAdmin checks in the source code.", "https://images.unsplash.com/photo-1509822929063-6b6cfc9b42f2?q=80&w=400&auto=format&fit=crop"),

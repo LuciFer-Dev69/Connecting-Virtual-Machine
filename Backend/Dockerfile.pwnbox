@@ -23,8 +23,8 @@ RUN apt-get update || (sleep 5 && apt-get update) && \
     npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages for Phantom Shop
-RUN pip3 install flask
+# Install Python packages for Phantom Shop and AI Simulator
+RUN pip3 install flask flask-cors
 
 # Install Node.js packages globally
 RUN npm install -g express body-parser
@@ -53,15 +53,20 @@ RUN chown chakra:chakra -
 RUN echo "Welcome to Chakra PwnBox!\n\nLevel 1 Goal: Read the file named '-'.\n" > README.txt
 RUN chown chakra:chakra README.txt
 
-# Copy Phantom Shop services
+# Copy Phantom Shop and AI Simulator
 COPY phantom-shop /opt/phantom-shop
+COPY ai_simulator.py /opt/ai_simulator.py
+COPY service-discovery-lab /opt/service-discovery-lab
 RUN chmod +x /opt/phantom-shop/start-services.sh
+RUN chmod +x /opt/service-discovery-lab/start.sh
 
-# Create startup script that runs SSH and Phantom Shop
+# Create startup script that runs SSH, Phantom Shop, AI Simulator, and Service Lab
 RUN echo '#!/bin/bash\n\
     /opt/phantom-shop/start-services.sh &\n\
+    python3 /opt/ai_simulator.py &\n\
+    /opt/service-discovery-lab/start.sh &\n\
     /usr/sbin/sshd -D' > /start.sh && chmod +x /start.sh
 
-EXPOSE 22
+EXPOSE 22 8088 9091
 
 CMD ["/start.sh"]

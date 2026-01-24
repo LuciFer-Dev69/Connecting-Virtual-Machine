@@ -20,7 +20,7 @@ const CATEGORIES = [
 
 export default function Landing() {
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0a0a", color: "#fff", overflowX: "hidden", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", overflowX: "hidden" }}>
       <Navbar />
 
       {/* Hero Section */}
@@ -64,7 +64,7 @@ export default function Landing() {
             left: 0,
             width: "100%",
             height: "100%",
-            background: "linear-gradient(to right, #0a0a0a 0%, transparent 50%, transparent 100%)"
+            background: "linear-gradient(to right, var(--bg) 0%, transparent 50%, transparent 100%)"
           }} />
         </div>
 
@@ -112,7 +112,7 @@ export default function Landing() {
       </div>
 
       {/* Sponsors Slider (Simulated Ticker) */}
-      <div style={{ padding: "40px 0", background: "#111" }}>
+      <div style={{ padding: "40px 0", background: "var(--card-bg)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
         <p style={{ textAlign: "center", color: "#555", marginBottom: "30px", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "2px" }}>Trusted By Industry Leaders</p>
         <div style={{ overflow: "hidden", whiteSpace: "nowrap", position: "relative" }}>
           <div style={{ display: "inline-block", animation: "scroll 20s linear infinite" }}>
@@ -124,7 +124,7 @@ export default function Landing() {
       </div>
 
       {/* Challenge Categories Slider */}
-      <div style={{ padding: "80px 20px", textAlign: "center", background: "#0a0a0a" }}>
+      <div style={{ padding: "80px 20px", textAlign: "center", background: "var(--bg)" }}>
         <h2 style={{ fontSize: "2.5rem", marginBottom: "50px" }}>Explore Challenges</h2>
         <div style={{
           display: "flex",
@@ -137,9 +137,9 @@ export default function Landing() {
         }}>
           {CATEGORIES.map((cat, i) => (
             <div key={i} style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "10px",
+              background: "var(--card-bg)",
+              border: "1px solid var(--card-border)",
+              borderRadius: "20px",
               padding: "40px",
               minWidth: "250px",
               textAlign: "center",
@@ -158,7 +158,7 @@ export default function Landing() {
       </div>
 
       {/* Events Section */}
-      <div style={{ padding: "80px 20px", background: "#111", textAlign: "center" }}>
+      <div style={{ padding: "80px 20px", background: "var(--card-bg)", textAlign: "center" }}>
         <h2 style={{ fontSize: "2.5rem", marginBottom: "50px" }}>Upcoming CTF Events</h2>
         <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "left" }}>
           <div style={{ display: "flex", gap: "20px", alignItems: "center", marginBottom: "30px", background: "#1a1a1a", padding: "20px", borderRadius: "10px" }}>
@@ -192,7 +192,7 @@ export default function Landing() {
       </div>
 
       {/* Footer */}
-      <footer style={{ padding: "50px 20px", borderTop: "1px solid #333", background: "#050505", textAlign: "center", color: "#666" }}>
+      <footer style={{ padding: "80px 20px", borderTop: "1px solid var(--card-border)", background: "var(--bg)", textAlign: "center", color: "var(--muted)" }}>
         <div style={{ marginBottom: "20px" }}>
           <img src="/logo.png" alt="Logo" style={{ height: "100px", marginBottom: "20px" }} />
           <p>&copy; 2024 ChakraView CTF Platform. All rights reserved.</p>
