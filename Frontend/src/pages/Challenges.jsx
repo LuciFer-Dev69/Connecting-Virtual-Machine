@@ -133,10 +133,8 @@ export default function Challenges({ initialView = "selection" }) {
       }
       e.preventDefault();
       if (challenge.status !== "locked") {
-        setSelectedChallenge(challenge);
-        setFlagInput("");
-        setSubmissionMsg({ text: "", type: "" });
-        setHint("");
+        // Use the new full-page laboratory view for RED team challenges
+        window.location.hash = `#/real-life-challenges/${challenge.id}`;
       }
     }
   };
@@ -1000,7 +998,6 @@ export default function Challenges({ initialView = "selection" }) {
           </div>
         )}
 
-        <ChallengeModal />
       </div>
     );
   };

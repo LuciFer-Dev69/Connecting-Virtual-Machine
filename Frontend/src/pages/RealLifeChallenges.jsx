@@ -7,48 +7,59 @@ import { Target, Shield, Zap, Search, ChevronRight, FileUp, ShoppingCart } from 
 export default function RealLifeChallenges() {
     const categories = [
         {
-            name: "Phantom Login - Reflected XSS",
-            key: "XSS",
-            icon: Target,
-            description: "A vulnerable login system is running locally. The username field is reflected back in the welcome message without any sanitization. Inject a JavaScript payload to execute in the browser and retrieve the flag.",
-            learn: "XSS, SQL Injection, Terminal Tools",
+            name: "Service Enumeration",
+            key: "service-enumeration",
+            icon: Search,
+            description: "A target system is running multiple services, some on non-standard ports. Identify all open ports and running services.",
+            learn: "nmap, ss, netstat",
             color: "#00d4ff",
             difficulty: "Easy",
             points: 100,
-            path: "#/xss-challenge"
+            path: "#/easy-lab/1"
         },
         {
-            name: "Phantom Profile - File Upload",
-            key: "File Upload",
-            icon: FileUp,
-            description: "Bypass profile avatar restrictions to demonstrate file upload misconfigurations and achieve remote execution.",
-            learn: "Extension Filtering, RCE, Misconfiguration",
+            name: "Version Detection",
+            key: "version-detection",
+            icon: Zap,
+            description: "Discover service versions to identify outdated software. The target web server is running a legacy version.",
+            learn: "nmap -sV, curl, whatweb",
             color: "#00d4ff",
             difficulty: "Easy",
             points: 100,
-            path: "#/upload-challenge"
+            path: "#/easy-lab/2"
         },
         {
-            name: "Phantom Login - SQL Injection",
-            key: "SQL Injection",
+            name: "Robots.txt Information Leak",
+            key: "robots-leak",
             icon: Shield,
-            description: "Inject SQL payloads to bypass authentication and gain unauthorized administrative access.",
-            learn: "Auth Bypass, SQL syntax, Sanitization",
-            color: "#ff8c00",
-            difficulty: "Medium",
-            points: 200,
-            path: "#/sqli-challenge"
+            description: "Find sensitive paths exposed via robots.txt. Many sites accidentally leak admin paths in their crawl-delay settings.",
+            learn: "curl, browser reconnaissance",
+            color: "#00d4ff",
+            difficulty: "Easy",
+            points: 100,
+            path: "#/easy-lab/3"
         },
         {
-            name: "Zero-Dollar Checkout",
-            key: "Business Logic",
-            icon: ShoppingCart,
-            description: "Manipulate transactional logic to purchase high-value items for $0 and exploit price trust.",
-            learn: "Pricing Logic, Transaction Integrity, OWASP A04",
-            color: "#ff4444",
-            difficulty: "Hardest",
-            points: 350,
-            path: "#/logic-challenge"
+            name: "Hidden Directory Discovery",
+            key: "hidden-directory",
+            icon: Target,
+            description: "Enumerate hidden directories like /admin or /backup using brute-force tools.",
+            learn: "gobuster, ffuf, dirsearch",
+            color: "#00d4ff",
+            difficulty: "Easy",
+            points: 100,
+            path: "#/easy-lab/4"
+        },
+        {
+            name: "Default Credentials Abuse",
+            key: "default-credentials",
+            icon: Zap,
+            description: "Gain access using weak or common login credentials. The administrator left the default settings unchanged.",
+            learn: "browser, curl, auth bypass",
+            color: "#00d4ff",
+            difficulty: "Easy",
+            points: 100,
+            path: "#/easy-lab/5"
         }
     ];
 

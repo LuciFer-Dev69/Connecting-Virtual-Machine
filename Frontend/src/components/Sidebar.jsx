@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutDashboard, Target, BookOpen, GraduationCap, User, Shield, Terminal } from "lucide-react";
+import { LayoutDashboard, Target, BookOpen, GraduationCap, User, Shield, Terminal, Zap, Search } from "lucide-react";
 
 export default function Sidebar({ active }) {
   const groups = [
@@ -15,6 +15,13 @@ export default function Sidebar({ active }) {
       items: [
         { name: "Attack Paths", key: "real-life-challenges", icon: Shield, path: "#/real-life-challenges" },
         { name: "Operator Terminal", key: "pwnbox", icon: Terminal, path: "#/pwnbox" },
+      ]
+    },
+    {
+      label: "INTELLIGENCE",
+      items: [
+        { name: "Prompt Injection Lab", key: "ai-prompt-injection", icon: Zap, path: "#/ai-prompt-injection" },
+        { name: "AI Log Analyzer", key: "ai-log-analyzer", icon: Search, path: "#/ai-log-analyzer" },
       ]
     },
     {

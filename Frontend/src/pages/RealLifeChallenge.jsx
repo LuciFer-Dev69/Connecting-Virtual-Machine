@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE } from '../config';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
-import { ArrowLeft, Play, Square, ExternalLink, Lightbulb, Flag, Award } from 'lucide-react';
+import { ArrowLeft, Play, Square, ExternalLink, Lightbulb, Flag, Award, Terminal, Cpu, FileText } from 'lucide-react';
+import WebTerminal from '../components/WebTerminal';
 
 const RealLifeChallenge = ({ id }) => {
     const [challenge, setChallenge] = useState(null);
@@ -12,7 +13,56 @@ const RealLifeChallenge = ({ id }) => {
     const [flag, setFlag] = useState("");
     const [result, setResult] = useState(null);
     const [revealedHints, setRevealedHints] = useState([]);
+    const [aiHint, setAiHint] = useState("");
+    const [aiWalkthrough, setAiWalkthrough] = useState("");
+    const [aiLoading, setAiLoading] = useState(false);
+    const [terminalMode, setTerminalMode] = useState(false);
 
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    const getAIHint = async () => {
+        setAiLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/ai/hint`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    challenge_id: id,
+                    commands: [] // In future, track commands here
+                })
+            });
+            const data = await res.json();
+            setAiHint(data.hint);
+        } catch (err) {
+            setAiHint("AI Mentor is currently offline.");
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    const getAIWalkthrough = async () => {
+        setAiLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/ai/walkthrough`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    challenge_id: id,
+                    user_id: user.user_id
+                })
+            });
+            const data = await res.json();
+            if (data.error) {
+                setAiWalkthrough(`[LOCKED] ${data.error}`);
+            } else {
+                setAiWalkthrough(data.walkthrough);
+            }
+        } catch (err) {
+            setAiWalkthrough("AI is currently offline.");
+        } finally {
+            setAiLoading(false);
+        }
+    };
     const user_id = JSON.parse(localStorage.getItem('user'))?.user_id || 1;
 
     const fetchDetails = () => {
@@ -21,6 +71,10 @@ const RealLifeChallenge = ({ id }) => {
             .then(data => {
                 setChallenge(data.challenge);
                 setSession(data.session);
+                // Enable terminal mode for IDs 1-5
+                if (parseInt(id) >= 1 && parseInt(id) <= 5) {
+                    setTerminalMode(true);
+                }
                 setLoading(false);
             })
             .catch(err => {
@@ -250,11 +304,19 @@ const RealLifeChallenge = ({ id }) => {
                     {/* Left: Challenge View */}
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--input-bg)" }}>
                         {session && session.status === 'active' ? (
-                            <iframe
-                                src={`http://localhost:${session.assigned_port}`}
-                                title="Vulnerable App"
-                                style={{ width: "100%", height: "100%", border: "none" }}
-                            />
+                            terminalMode ? (
+                                <WebTerminal
+                                    host="192.168.81.134"
+                                    user="chakra"
+                                    challenge_id={id}
+                                />
+                            ) : (
+                                <iframe
+                                    src={`http://localhost:${session.assigned_port}`}
+                                    title="Vulnerable App"
+                                    style={{ width: "100%", height: "100%", border: "none" }}
+                                />
+                            )
                         ) : (
                             <div style={{
                                 flex: 1,
@@ -386,6 +448,48 @@ const RealLifeChallenge = ({ id }) => {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* AI MENTOR (NEW) */}
+                            <div style={{ background: "rgba(255, 0, 68, 0.05)", border: "1px solid var(--red)40", borderRadius: "12px", padding: "15px", marginBottom: "20px" }}>
+                                <h3 style={{ fontSize: "14px", fontWeight: "800", color: "var(--red)", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", margin: "0 0 10px 0" }}>
+                                    <Cpu size={14} /> AI Mentor Ops
+                                </h3>
+                                {!aiHint ? (
+                                    <button
+                                        onClick={getAIHint}
+                                        disabled={aiLoading}
+                                        style={{ width: "100%", background: "var(--red)", border: "none", color: "#fff", padding: "10px", borderRadius: "6px", fontWeight: "700", fontSize: "12px", cursor: "pointer" }}
+                                    >
+                                        {aiLoading ? "Consulting Intelligence..." : "Request Contextual Hint"}
+                                    </button>
+                                ) : (
+                                    <div style={{ fontSize: "12px", color: "var(--text)", lineHeight: "1.5", background: "var(--card-bg)", padding: "10px", borderRadius: "6px", border: "1px solid var(--card-border)" }}>
+                                        <b>💡 AI Guidance:</b> {aiHint}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* AI WALKTHROUGH (NEW) */}
+                            {result?.type === 'success' && (
+                                <div style={{ background: "rgba(0, 212, 255, 0.05)", border: "1px solid var(--blue)40", borderRadius: "12px", padding: "15px", marginBottom: "20px" }}>
+                                    <h3 style={{ fontSize: "14px", fontWeight: "800", color: "var(--blue)", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", margin: "0 0 10px 0" }}>
+                                        <FileText size={14} /> AI Walkthrough
+                                    </h3>
+                                    {!aiWalkthrough ? (
+                                        <button
+                                            onClick={getAIWalkthrough}
+                                            disabled={aiLoading}
+                                            style={{ width: "100%", background: "var(--blue)", border: "none", color: "#fff", padding: "10px", borderRadius: "6px", fontWeight: "700", fontSize: "12px", cursor: "pointer" }}
+                                        >
+                                            Generate Report
+                                        </button>
+                                    ) : (
+                                        <div style={{ fontSize: "12px", color: "var(--text)", lineHeight: "1.5", background: "var(--card-bg)", padding: "10px", borderRadius: "6px", border: "1px solid var(--card-border)", maxHeight: "200px", overflowY: "auto" }}>
+                                            {aiWalkthrough}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Flag Submission */}
                             <div>

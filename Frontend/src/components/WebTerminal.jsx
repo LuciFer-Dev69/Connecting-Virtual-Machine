@@ -5,12 +5,30 @@ import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 import io from 'socket.io-client';
 
-const WebTerminal = ({ host, user, onExit }) => {
+const WebTerminal = ({ host, user, onExit, challenge_id }) => {
     const terminalRef = useRef(null);
     const socketRef = useRef(null);
     const termRef = useRef(null);
     const [connected, setConnected] = useState(false);
 
+
+    const [suggestion, setSuggestion] = useState("");
+    const [commandBuffer, setCommandBuffer] = useState("");
+    const [history, setHistory] = useState([]);
+
+    const getMentorSuggestion = async (cmdHistory) => {
+        try {
+            const res = await fetch(`http://localhost:5000/api/ai/mentor`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ history: cmdHistory, lab_name: host })
+            });
+            const data = await res.json();
+            setSuggestion(data.suggestion);
+        } catch (err) {
+            console.error("AI Mentor error:", err);
+        }
+    };
 
     useEffect(() => {
         // Initialize terminal
@@ -30,7 +48,6 @@ const WebTerminal = ({ host, user, onExit }) => {
         term.loadAddon(fitAddon);
         term.open(terminalRef.current);
 
-        // Ensure fit happens after opening and slightly delayed to catch container growth
         setTimeout(() => {
             fitAddon.fit();
             term.focus();
@@ -38,17 +55,14 @@ const WebTerminal = ({ host, user, onExit }) => {
 
         termRef.current = term;
 
-        // Socket.io connection
         const socket = io('http://localhost:5000');
         socketRef.current = socket;
 
-        // Auto-connect flow
         socket.on('connect', () => {
             term.write('\r\n\x1b[1;36mInitializing Secure Connection...\x1b[0m\r\n');
-            // Credentials are now handled securely by the backend
             socket.emit('ssh_connect', {
-                // We send basic metadata if needed, but no passwords
-                clientVersion: '1.0.0'
+                clientVersion: '1.0.0',
+                challenge_id: challenge_id
             });
             setConnected(true);
         });
@@ -68,14 +82,28 @@ const WebTerminal = ({ host, user, onExit }) => {
             if (onExit) onExit();
         });
 
-        // Interactive Input
+        // Interactive Input & Command Tracking
+        let currentCmd = "";
         term.onData((data) => {
-            if (connected) { // Only send input if SSH connection is active
+            if (connected) {
                 socket.emit('ssh_input', data);
+
+                // Track commands for AI
+                if (data === '\r' || data === '\n') {
+                    if (currentCmd.trim()) {
+                        const newHistory = [...history, currentCmd.trim()].slice(-5);
+                        setHistory(newHistory);
+                        getMentorSuggestion(newHistory);
+                    }
+                    currentCmd = "";
+                } else if (data === '\x7f') { // Backspace
+                    currentCmd = currentCmd.slice(0, -1);
+                } else {
+                    currentCmd += data;
+                }
             }
         });
 
-        // Handle resize if needed in future (fitAddon handles initial)
         const handleResize = () => fitAddon.fit();
         window.addEventListener('resize', handleResize);
 
@@ -84,17 +112,49 @@ const WebTerminal = ({ host, user, onExit }) => {
             term.dispose();
             window.removeEventListener('resize', handleResize);
         };
-    }, [host, user, onExit, connected]); // Added 'connected' to dependencies to ensure term.onData uses latest state
+    }, [host, user, onExit, connected]);
 
     return (
-        <div
-            ref={terminalRef}
-            style={{
-                height: "100%",
-                width: "100%",
-                background: "#0d0d0d"
-            }}
-        />
+        <div style={{ position: "relative", height: "100%", width: "100%" }}>
+            <div
+                ref={terminalRef}
+                style={{
+                    height: "100%",
+                    width: "100%",
+                    background: "#0d0d0d"
+                }}
+            />
+            {suggestion && (
+                <div style={{
+                    position: "absolute",
+                    bottom: "20px",
+                    right: "20px",
+                    maxWidth: "300px",
+                    background: "rgba(255, 0, 68, 0.9)",
+                    border: "1px solid var(--red)",
+                    color: "#fff",
+                    padding: "12px 16px",
+                    borderRadius: "12px",
+                    fontSize: "12px",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                    zIndex: 100,
+                    animation: "slideIn 0.3s ease-out",
+                    backdropFilter: "blur(4px)"
+                }}>
+                    <div style={{ fontWeight: "800", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span>AI MENTOR</span>
+                        <button onClick={() => setSuggestion("")} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "14px" }}>×</button>
+                    </div>
+                    {suggestion}
+                </div>
+            )}
+            <style>{`
+                @keyframes slideIn {
+                    from { transform: translateX(50px); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `}</style>
+        </div>
     );
 };
 

@@ -1,0 +1,17 @@
+﻿Database connection pool created successfully
+Easy: 32 - Service Enumeration
+Easy: 33 - Version Detection
+Easy: 34 - Robots.txt Information Leak
+Easy: 35 - Hidden Directory Discovery
+Easy: 36 - Default Credentials Abuse
+Medium: 37 - AI Prompt Injection
+Medium: 38 - DOM-Based XSS
+Medium: 39 - Stored XSS via Client Storage
+Medium: 40 - Client-Side Authentication Bypass
+Medium: 41 - LocalStorage Token Manipulation
+Medium: 42 - Hidden Admin UI Exposure
+Hard: 43 - Advanced DOM XSS Chain
+Hard: 44 - JavaScript Prototype Pollution
+Hard: 45 - Client-Side Role Escalation
+Hard: 46 - OAuth Token Leakage (Frontend Flow)
+Hard: 47 - CSP Bypass via Script Gadgets

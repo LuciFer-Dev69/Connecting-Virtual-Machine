@@ -29,13 +29,42 @@ def get_challenge_details(id):
         cursor.execute("SELECT id, title, description, difficulty, category, points, hints, is_locked FROM real_life_challenges WHERE id = %s", (id,))
         challenge = cursor.fetchone()
         
+        # Mapping titles to Lab IDs (1-5) for consistency between tables
+        lab_title_map = {
+            "Service Enumeration": 1,
+            "Version Detection": 2,
+            "Robots.txt Information Leak": 3,
+            "Hidden Directory Discovery": 4,
+            "Default Credentials Abuse": 5
+        }
+
+        if not challenge:
+            # Check main challenges table as fallback (for IDs like 48, 49, 53, etc.)
+            cursor.execute("SELECT id, title, description, difficulty, category, points, flag FROM challenges WHERE id = %s", (id,))
+            chal_data = cursor.fetchone()
+            if chal_data:
+                # Map to a lab if it matches by title
+                mapped_lab_id = lab_title_map.get(chal_data['title'])
+                if mapped_lab_id and mapped_lab_id != id:
+                    # Redirect or just load the lab data instead
+                    cursor.execute("SELECT id, title, description, difficulty, category, points, hints, is_locked FROM real_life_challenges WHERE id = %s", (mapped_lab_id,))
+                    challenge = cursor.fetchone()
+                else:
+                    # Generic Red Team challenge
+                    challenge = {
+                        "id": chal_data["id"],
+                        "title": chal_data["title"],
+                        "description": chal_data["description"],
+                        "difficulty": chal_data["difficulty"],
+                        "category": chal_data["category"],
+                        "points": chal_data["points"],
+                        "hints": "[]", # Default empty hints
+                        "is_locked": 0
+                    }
+            
         if not challenge:
             conn.close()
             return jsonify({"error": "Challenge not found"}), 404
-
-        if challenge.get('is_locked'):
-            conn.close()
-            return jsonify({"error": "This challenge is currently locked by Administrator."}), 403
             
         # Parse hints JSON
         if challenge['hints']:
@@ -63,8 +92,33 @@ def start_challenge(id):
         cursor = conn.cursor(dictionary=True)
         
         # Get challenge info
-        cursor.execute("SELECT category, docker_image, is_locked FROM real_life_challenges WHERE id = %s", (id,))
+        cursor.execute("SELECT id, title, category, docker_image, is_locked FROM real_life_challenges WHERE id = %s", (id,))
         challenge = cursor.fetchone()
+        
+        # Fallback mapping
+        lab_title_map = {
+            "Service Enumeration": 1,
+            "Version Detection": 2,
+            "Robots.txt Information Leak": 3,
+            "Hidden Directory Discovery": 4,
+            "Default Credentials Abuse": 5
+        }
+
+        if not challenge:
+            cursor.execute("SELECT id, title, category FROM challenges WHERE id = %s", (id,))
+            chal_data = cursor.fetchone()
+            if chal_data:
+                mapped_lab_id = lab_title_map.get(chal_data['title'])
+                if mapped_lab_id:
+                    # Switch to the Lab ID for spawning logic
+                    id = mapped_lab_id
+                    cursor.execute("SELECT id, title, category, docker_image, is_locked FROM real_life_challenges WHERE id = %s", (id,))
+                    challenge = cursor.fetchone()
+                else:
+                    challenge = chal_data
+                    challenge['docker_image'] = 'chakra_pwnbox' # Force pwnbox
+                    challenge['is_locked'] = 0
+
         if not challenge:
             conn.close()
             return jsonify({"error": "Challenge not found"}), 404
@@ -84,15 +138,25 @@ def start_challenge(id):
             cursor.execute("UPDATE real_life_challenge_sessions SET status = 'stopped', completed_at = NOW() WHERE id = %s", (existing['id'],))
             conn.commit()
 
-        # Spawn Container
-        category_map = {
-            "XSS": "xss",
-            "SQL Injection": "sqli", 
-            "Authorization": "auth"
-        }
-        short_cat = category_map.get(challenge['category'])
-        
-        spawn_info = real_life_challenge_manager.spawn_challenge(short_cat, user_id)
+        # Special handling for Easy Red Team Labs (IDs 1-5)
+        if 1 <= int(id) <= 5:
+            spawn_info = {
+                "container_id": "pwnbox",
+                "port": 22, # SSH Port
+                "url": "http://localhost:5101" # Default lab port, but we use terminal
+            }
+            # Adjust URL based on ID
+            port_map = {1: 5101, 2: 5102, 3: 5103, 4: 5104, 5: 5105}
+            spawn_info["url"] = f"http://localhost:{port_map[int(id)]}"
+        else:
+            # Spawn Container for other challenges
+            category_map = {
+                "XSS": "xss",
+                "SQL Injection": "sqli", 
+                "Authorization": "auth"
+            }
+            short_cat = category_map.get(challenge['category'])
+            spawn_info = real_life_challenge_manager.spawn_challenge(short_cat, user_id)
         
         # Create Session
         cursor.execute("""
@@ -141,9 +205,28 @@ def submit_flag(id):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        cursor.execute("SELECT flag, points FROM real_life_challenges WHERE id = %s", (id,))
+        cursor.execute("SELECT id, title, flag, points FROM real_life_challenges WHERE id = %s", (id,))
         challenge = cursor.fetchone()
         
+        lab_title_map = {
+            "Service Enumeration": 1,
+            "Version Detection": 2,
+            "Robots.txt Information Leak": 3,
+            "Hidden Directory Discovery": 4,
+            "Default Credentials Abuse": 5
+        }
+
+        if not challenge:
+            cursor.execute("SELECT id, title, flag, points FROM challenges WHERE id = %s", (id,))
+            chal_data = cursor.fetchone()
+            if chal_data:
+                mapped_lab_id = lab_title_map.get(chal_data['title'])
+                if mapped_lab_id:
+                   cursor.execute("SELECT id, title, flag, points FROM real_life_challenges WHERE id = %s", (mapped_lab_id,))
+                   challenge = cursor.fetchone()
+                else:
+                    challenge = chal_data
+            
         if not challenge:
             conn.close()
             return jsonify({"error": "Challenge not found"}), 404

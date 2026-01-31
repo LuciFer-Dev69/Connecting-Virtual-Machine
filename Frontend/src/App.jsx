@@ -33,6 +33,8 @@ import SQLiChallenge from "./pages/SQLiChallenge";
 import BusinessLogicChallenge from "./pages/BusinessLogicChallenge";
 import DefensiveChallenge from "./pages/DefensiveChallenge";
 import AIPromptInjectionChallenge from "./pages/AIPromptInjectionChallenge";
+import AIPromptInjectionLab from "./pages/AIPromptInjectionLab";
+import AILogAnalyzer from "./pages/AILogAnalyzer";
 
 
 
@@ -112,11 +114,11 @@ function parseHash() {
   // PwnBox / Bandit
   if (parts[0] === "pwnbox") return { route: "pwnbox" };
 
-  // Real-Life Challenges
-  if (parts[0] === "real-life-challenges" && parts[1]) {
+  // Real-Life Challenges / Easy Labs
+  if ((parts[0] === "real-life-challenges" || parts[0] === "easy-lab") && parts[1]) {
     return { route: "real-life-challenge", params: { id: parts[1] } };
   }
-  if (parts[0] === "real-life-challenges") return { route: "real-life-challenges" };
+  if (parts[0] === "real-life-challenges" || parts[0] === "easy-labs") return { route: "real-life-challenges" };
 
   // XSS Challenge
   if (parts[0] === "xss-challenge") return { route: "xss-challenge" };
@@ -140,6 +142,7 @@ function parseHash() {
   if (parts[0] === "red-team") return { route: "red-team" };
   if (parts[0] === "blue-team") return { route: "blue-team" };
   if (parts[0] === "ai-prompt-injection") return { route: "ai-prompt-injection" };
+  if (parts[0] === "ai-log-analyzer") return { route: "ai-log-analyzer" };
 
   return { route: "landing" };
 }
@@ -228,7 +231,9 @@ export default function App() {
       case "blue-team":
         return <Challenges initialView="blue-roadmap" />;
       case "ai-prompt-injection":
-        return <AIPromptInjectionChallenge />;
+        return <AIPromptInjectionLab />;
+      case "ai-log-analyzer":
+        return <AILogAnalyzer />;
       case "admin":
         if (!isAdmin) {
           window.location.hash = "#/dashboard";

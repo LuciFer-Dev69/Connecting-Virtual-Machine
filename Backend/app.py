@@ -80,7 +80,9 @@ def log_admin_action(admin_id, action, target_type, target_id, old_val=None, new
         print(f"Logging error: {e}")
 
 from routes.real_life_challenges import real_life_bp
+from routes.ai_system import ai_bp
 app.register_blueprint(real_life_bp)
+app.register_blueprint(ai_bp)
 
 # Database connection pool
 db_config = {
@@ -1263,6 +1265,24 @@ def handle_ssh_connect(data):
     
     if success is True:
         emit('ssh_output', f"\r\n\033[1;32m[+] Connected to secure lab environment({host}).\033[0m\r\n")
+        
+        # Handle Easy Red Team Lab Initialization
+        challenge_id = data.get('challenge_id')
+        if challenge_id:
+            lab_map = {
+                1: "service-enumeration", 48: "service-enumeration",
+                2: "version-detection", 49: "version-detection",
+                3: "robots-leak", 50: "robots-leak",
+                4: "hidden-directory", 51: "hidden-directory",
+                5: "default-credentials", 52: "default-credentials"
+            }
+            dir_name = lab_map.get(int(challenge_id))
+            if dir_name:
+                session = ssh_manager.get_session(request.sid)
+                if session:
+                    # Clear screen and move to lab directory
+                    initial_cmd = f"clear && cd challenges/{dir_name} && cat README.txt\n"
+                    session.write(initial_cmd)
     else:
         emit('ssh_error', f"Connection failed: {success}")
 
