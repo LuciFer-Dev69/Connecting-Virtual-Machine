@@ -4,103 +4,101 @@ Chakra View is a state-of-the-art cybersecurity training platform designed to si
 
 ---
 
-## 🚀 Key Features
+## 🚀 Quick Start Guide (a-z)
 
-*   **Red Team Labs**: Real-world exploit scenarios including Service Enumeration, Web Exploitation, and AI Prompt Injection.
-*   **Blue Team Labs**: Defensive monitoring, log analysis, and threat detection modules.
-*   **Integrated PwnBox**: A browser-based Kali Linux-style terminal environment for running exploits directly from the browser.
-*   **Self-Hosted AI Opponent**: A live conversational AI (running via Ollama) that players must social engineer and exploit (Prompt Injection).
-*   **Dynamic Flag System**: Automated flag validation and scoring.
-*   **Role-Based Access**: Student, Operator, and Admin roles.
+### 1. Prerequisites
+Before you begin, ensure you have the following installed on your host machine:
+- **Docker & Docker Compose**: [Get Docker](https://docs.docker.com/get-docker/)
+- **Ollama**: [Get Ollama](https://ollama.com/) (Required for AI labs)
+- **Git**: [Get Git](https://git-scm.com/downloads)
 
 ---
 
 ## 🧠 AI System Setup (Ollama)
 
-This platform uses a **real LLM** (Large Language Model) to power the Prompt Injection labs. You must set up Ollama on your host machine before running the labs.
+This platform uses a **real LLM** to power the Prompt Injection labs. Follow these steps exactly:
 
-### 1. Install Ollama
-Download and install Ollama from [ollama.com](https://ollama.com).
-
-### 2. Pull the Model
-Open your terminal and run the following command to download the **Gemma 3 4B** model:
-```bash
-ollama pull gemma3:4b
-```
-
-### 3. Verify Ollama API
-The backend expects the Ollama API to be reachable. By default, the lab is configured to use `host.docker.internal` to talk to your host machine's Ollama service.
+1.  **Install Ollama**: Run the installer you downloaded from [ollama.com](https://ollama.com).
+2.  **Pull the Model**: Open your terminal (PowerShell or Bash) and run:
+    ```bash
+    ollama pull gemma3:4b
+    ```
+3.  **Cross-Origin Configuration (IMPORTANT)**: If you face connection issues from Docker to Ollama, ensure Ollama allows cross-origin requests. 
+    - On Windows, set the environment variable `OLLAMA_ORIGINS` to `*` and restart Ollama.
 
 ---
 
-## 📦 Installation & Setup
+## 📦 Docker Operations
 
-### 1. Prerequisites
-*   Docker & Docker Compose
-*   Ollama (with `gemma3:4b` pulled)
-*   Git
+This project is fully containerized. Here are the essential commands you need:
 
-### 2. Clone the Repository
-```bash
-git clone https://github.com/LuciFer-Dev69/Connecting-Virtual-Machine.git
-cd Connecting-Virtual-Machine
-```
+### 🚀 Initial Setup
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/LuciFer-Dev69/Connecting-Virtual-Machine.git
+    cd Connecting-Virtual-Machine
+    ```
+2.  **Verify Environment**:
+    Check `Backend/.env` to ensure it targets your Ollama instance:
+    ```ini
+    OLLAMA_URL=http://host.docker.internal:11434/api/generate
+    AI_MODEL=gemma3:4b
+    ```
+3.  **Build and Start**:
+    ```bash
+    docker-compose up --build -d
+    ```
 
-### 3. Environment Configuration
-Copy the example environment file to create your own configuration:
-```bash
-cp Backend/.env.example Backend/.env
-```
+### 🛠️ Common Docker Commands
+- **Stop the Platform**: `docker-compose down`
+- **View Logs**: `docker-compose logs -f` (Use `-f backend` or `-f frontend` to target specific services)
+- **Hard Reset**: `docker-compose down -v --rmi all` (Clears everything, including db volumes and images)
+- **Check Status**: `docker ps`
 
-Ensure your `Backend/.env` contains the Ollama configuration:
-```ini
-# AI Challenge Config (Ollama Integration)
-OLLAMA_URL=http://host.docker.internal:11434/api/generate
-AI_MODEL=gemma3:4b
-```
+---
 
-### 4. Launch the Platform
-Build and start all services (Database, Backend, Frontend, PwnBox):
-```bash
-docker-compose up --build -d
-```
+## 🗄️ Database Initialization
 
-### 5. Initialize the Database
-Once the containers are running, initialize the database schema and challenge data:
+After the containers are healthy, you **MUST** run the following to populate the challenges:
+
 ```bash
 docker exec -it chakra_backend python init_db.py
 ```
 
----
-
-## 🤖 Antigravity Deployment (For Quick Start)
-
-If you are using the **Antigravity AI Agent**, you can automate the entire setup by giving it this single command:
-
-> *"Deploy the Chakra platform and set up the Gemma 3 LLM. Ensure Docker is running and pull the model via Ollama."*
-
-Antigravity will automatically check your environment, install dependencies, and launch the lab for you.
+This script:
+1.  Creates all necessary tables.
+2.  Seeds the Red Team roadmap with labs (Host Discovery, Web Recon, etc.).
+3.  Creates the default admin account.
 
 ---
 
-## 🔑 Default Credentials
+## 🔑 Access Information
 
-### Web Dashboard Login
-*   **URL**: `http://localhost:3000`
-*   **Admin Email**: `admin@chakra.com`
-*   **Admin Password**: `Admin@1234`
+| Service | URL / Access | Credentials |
+| :--- | :--- | :--- |
+| **Web Dashboard** | `http://localhost:3000` | `admin@chakra.com` / `Admin@1234` |
+| **PwnBox Terminal** | Built-in Tab | `chakra` / `user` |
+| **API Backend** | `http://localhost:5000` | N/A |
+| **MySQL DB** | Port `3306` | `user` / `userpassword` |
 
-### PwnBox (Terminal Access)
-*   **User**: `chakra`
-*   **Password**: `user`
+---
+
+## 🛠️ Troubleshooting
+
+- **PwnBox Terminal "nmap not found"**: 
+  - If the terminal loads but `nmap` is missing, try: `docker-compose build --no-cache pwnbox && docker-compose up -d pwnbox`
+- **AI Assistant unresponsive**:
+  - Ensure Ollama is running on your host (`ollama list` should show the model).
+  - Verify `host.docker.internal` is resolving inside the container.
+- **Database Connection Refused**:
+  - Wait 20 seconds for the MySQL container to fully initialize before running `init_db.py`.
 
 ---
 
 ## 🛡️ Security Warning
 **THIS APPLICATION CONTAINS VULNERABLE CODE BY DESIGN.**
-*   The `PwnBox` container allows execution of system commands.
-*   The `Backend` has intentional vulnerabilities for educational purposes.
-*   **DO NOT** deploy this on a public server without strict firewall rules.
+- It is intended for local educational use **ONLY**.
+- **DO NOT** expose `localhost:3000` or `localhost:5000` to the public internet.
 
 ---
 

@@ -66,6 +66,9 @@ def get_challenge_details(id):
             conn.close()
             return jsonify({"error": "Challenge not found"}), 404
             
+        # Determine the canonical ID for session lookup
+        canonical_id = challenge['id']
+            
         # Parse hints JSON
         if challenge['hints']:
             challenge['hints'] = json.loads(challenge['hints'])
@@ -74,12 +77,22 @@ def get_challenge_details(id):
         user_id = request.args.get('user_id')
         session = None
         if user_id:
-            cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'active'", (user_id, id))
+            cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'active'", (user_id, canonical_id))
             session = cursor.fetchone()
+            
+            if session:
+                # Add target_url based on challenge ID
+                if 1 <= int(canonical_id) <= 5:
+                    port_map = {1: 5101, 2: 5102, 3: 5103, 4: 5104, 5: 5105}
+                    session['target_url'] = f"http://localhost:{port_map[int(canonical_id)]}"
+                    session['assigned_port'] = port_map[int(canonical_id)]
+                elif session['assigned_port']:
+                    session['target_url'] = f"http://localhost:{session['assigned_port']}"
         
         conn.close()
         return jsonify({"challenge": challenge, "session": session}), 200
     except Exception as e:
+        print(f"Error in get_challenge_details: {e}")
         return jsonify({"error": str(e)}), 500
 
 @real_life_bp.route('/api/real-life-challenges/<int:id>/start', methods=['POST'])
@@ -110,52 +123,45 @@ def start_challenge(id):
             if chal_data:
                 mapped_lab_id = lab_title_map.get(chal_data['title'])
                 if mapped_lab_id:
-                    # Switch to the Lab ID for spawning logic
                     id = mapped_lab_id
                     cursor.execute("SELECT id, title, category, docker_image, is_locked FROM real_life_challenges WHERE id = %s", (id,))
                     challenge = cursor.fetchone()
-                else:
-                    challenge = chal_data
-                    challenge['docker_image'] = 'chakra_pwnbox' # Force pwnbox
-                    challenge['is_locked'] = 0
 
         if not challenge:
             conn.close()
             return jsonify({"error": "Challenge not found"}), 404
             
-        if challenge.get('is_locked'):
-            conn.close()
-            return jsonify({"error": "This challenge is currently locked and cannot be started."}), 403
-            
-        # Check existing session
-        cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND status = 'active'", (user_id,))
+        # Check existing session for THIS specific challenge
+        cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'active'", (user_id, id))
         existing = cursor.fetchone()
+        
         if existing:
-            # Stop existing container if strictly only one allowed (Plan says 1 active challenge per user)
-            # For now, let's auto-stop it or error. Let's auto-stop.
-            if existing['container_id']:
-                real_life_challenge_manager.stop_challenge(existing['container_id'])
-            cursor.execute("UPDATE real_life_challenge_sessions SET status = 'stopped', completed_at = NOW() WHERE id = %s", (existing['id'],))
-            conn.commit()
+            # Re-use existing session info
+            port_map = {1: 5101, 2: 5102, 3: 5103, 4: 5104, 5: 5105}
+            url = f"http://localhost:{port_map[id]}" if 1 <= id <= 5 else f"http://localhost:{existing['assigned_port']}"
+            return jsonify({"container_id": existing['container_id'], "port": existing['assigned_port'], "url": url}), 200
 
-        # Special handling for Easy Red Team Labs (IDs 1-5)
+        # Stop ANY other active sessions for this user to keep environment clean
+        cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND status = 'active'", (user_id,))
+        other_sessions = cursor.fetchall()
+        for s in other_sessions:
+            if s['container_id'] and s['container_id'] != 'pwnbox':
+                 real_life_challenge_manager.stop_challenge(s['container_id'])
+            cursor.execute("UPDATE real_life_challenge_sessions SET status = 'stopped', completed_at = NOW() WHERE id = %s", (s['id'],))
+        
+        conn.commit()
+
+        # Provisioning logic
         if 1 <= int(id) <= 5:
+            port_map = {1: 5101, 2: 5102, 3: 5103, 4: 5104, 5: 5105}
             spawn_info = {
                 "container_id": "pwnbox",
-                "port": 22, # SSH Port
-                "url": "http://localhost:5101" # Default lab port, but we use terminal
+                "port": port_map[int(id)],
+                "url": f"http://localhost:{port_map[int(id)]}"
             }
-            # Adjust URL based on ID
-            port_map = {1: 5101, 2: 5102, 3: 5103, 4: 5104, 5: 5105}
-            spawn_info["url"] = f"http://localhost:{port_map[int(id)]}"
         else:
-            # Spawn Container for other challenges
-            category_map = {
-                "XSS": "xss",
-                "SQL Injection": "sqli", 
-                "Authorization": "auth"
-            }
-            short_cat = category_map.get(challenge['category'])
+            cat_raw = challenge.get('category', '').lower()
+            short_cat = "xss" if "xss" in cat_raw else "sqli" if "sql" in cat_raw else "auth"
             spawn_info = real_life_challenge_manager.spawn_challenge(short_cat, user_id)
         
         # Create Session
@@ -185,6 +191,17 @@ def stop_challenge(id):
         cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'active'", (user_id, id))
         session = cursor.fetchone()
         
+        if not session:
+            # Fallback mapping check for stop
+            cursor.execute("SELECT title FROM challenges WHERE id = %s", (id,))
+            chal = cursor.fetchone()
+            if chal:
+                lab_title_map = {"Service Enumeration": 1, "Version Detection": 2, "Robots.txt Information Leak": 3, "Hidden Directory Discovery": 4, "Default Credentials Abuse": 5}
+                mapped_id = lab_title_map.get(chal['title'])
+                if mapped_id:
+                    cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'active'", (user_id, mapped_id))
+                    session = cursor.fetchone()
+
         if session and session['container_id']:
             real_life_challenge_manager.stop_challenge(session['container_id'])
             cursor.execute("UPDATE real_life_challenge_sessions SET status = 'stopped', completed_at = NOW() WHERE id = %s", (session['id'],))
@@ -232,24 +249,16 @@ def submit_flag(id):
             return jsonify({"error": "Challenge not found"}), 404
             
         if flag.strip() == challenge['flag'].strip():
-            # Check if already completed
-            cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'completed'", (user_id, id))
-            # Actually we track completion in sessions, but sessions are transient per run. 
-            # We should probably have a 'submissions' logic or just mark the session as user 'succeeded'. 
-            # The original plan said 'CREATE TABLE real_life_challenge_sessions ... status ENUM ... hints_used'.
-            # It didn't duplicate the main 'submissions' table logic. 
-            # Let's reuse the main 'submissions' table for point tracking to keep leaderboard consistent!
+            # Canonical ID for points and completion
+            canonical_id = challenge['id']
             
-            cursor.execute("SELECT submission_id FROM submissions WHERE user_id = %s AND challenge_id = %s AND is_correct = TRUE", (user_id, id))
-            # Wait, 'submissions' FK links to 'challenges' table (id). 'real_life_challenges' is a different table.
-            # FK constraints might fail if IDs overlap with 'challenges' table.
-            # Ah, schema issue. 'challenges' and 'real_life_challenges' are separate.
-            # For this MVP, I will just give points directly to user 'progress'.
+            # Check if already completed
+            cursor.execute("SELECT * FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'completed'", (user_id, canonical_id))
             
             cursor.execute("UPDATE users SET progress = progress + %s WHERE user_id = %s", (challenge['points'], user_id))
             
             # Close session
-            cursor.execute("SELECT id FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'active'", (user_id, id))
+            cursor.execute("SELECT id FROM real_life_challenge_sessions WHERE user_id = %s AND challenge_id = %s AND status = 'active'", (user_id, canonical_id))
             session = cursor.fetchone()
             if session:
                 cursor.execute("UPDATE real_life_challenge_sessions SET status = 'completed', completed_at = NOW() WHERE id = %s", (session['id'],))

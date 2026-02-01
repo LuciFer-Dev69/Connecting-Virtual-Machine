@@ -115,179 +115,23 @@ export default function Challenges({ initialView = "selection" }) {
     { id: 5, name: "Logic Abuse Detection", desc: "Identify price tampering by comparing logs with database reality.", icon: Eye, points: 350, locked: false }
   ];
 
-  const [selectedChallenge, setSelectedChallenge] = useState(null);
-  const [flagInput, setFlagInput] = useState("");
-  const [submissionMsg, setSubmissionMsg] = useState({ text: "", type: "" });
-  const [hint, setHint] = useState("");
-
-  const getPath = (challenge, type) => {
-    if (type === "red") return null; // We'll open a modal instead
-    return `#/defensive-challenge/${challenge.id}`;
-  };
-
   const handleChallengeClick = (e, challenge, type) => {
+    e.preventDefault();
+    if (challenge.status === "locked") return;
+
     if (type === "red") {
       if (challenge.title === "AI Prompt Injection") {
         window.location.hash = "#/ai-prompt-injection";
         return;
       }
-      e.preventDefault();
-      if (challenge.status !== "locked") {
-        // Use the new full-page laboratory view for RED team challenges
-        window.location.hash = `#/real-life-challenges/${challenge.id}`;
-      }
+      // Use the new full-page laboratory view for RED team challenges
+      window.location.hash = `#/real-life-challenges/${challenge.id}`;
+    } else {
+      // Blue Team Challenges
+      window.location.hash = `#/defensive-challenge/${challenge.id}`;
     }
   };
 
-  const submitFlag = async () => {
-    if (!flagInput) return;
-    setSubmissionMsg({ text: "Checking...", type: "neutral" });
-    try {
-      const res = await fetch(`${API_BASE}/submit-flag`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({
-          challenge_id: selectedChallenge.id,
-          roadmap_id: activeRoadmapId,
-          flag: flagInput
-        })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setSubmissionMsg({ text: data.message, type: "success" });
-        // Refresh roadmap to show unlock
-        fetchRedRoadmap();
-        setTimeout(() => setSelectedChallenge(null), 2000);
-      } else {
-        setSubmissionMsg({ text: data.message || "Invalid Flag", type: "error" });
-      }
-    } catch (err) {
-      setSubmissionMsg({ text: "Submission failed", type: "error" });
-    }
-  };
-
-  const fetchHint = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/hint/${selectedChallenge.id}`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-      });
-      const data = await res.json();
-      setHint(data.hint || "No hint available.");
-    } catch (err) {
-      setHint("Could not fetch hint.");
-    }
-  };
-
-  const ChallengeModal = () => {
-    if (!selectedChallenge) return null;
-    const isRed = view === "red-roadmap";
-    const color = isRed ? "#ff0044" : "#00d4ff";
-
-    return (
-      <div style={{
-        position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-        background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center",
-        justifyContent: "center", zIndex: 1000, padding: "20px", backdropFilter: "blur(8px)",
-        animation: "fadeIn 0.3s ease"
-      }}>
-        <style>
-          {`
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-            .modal-content { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-            .spinner {
-              width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1);
-              border-top-color: ${color}; border-radius: 50%;
-              animation: spin 1s linear infinite; display: inline-block;
-            }
-            @keyframes spin { to { transform: rotate(360deg); } }
-          `}
-        </style>
-        <div className="modal-content" style={{
-          background: "var(--card-bg)", width: "100%",
-          maxWidth: "550px", borderRadius: "24px", padding: "40px", position: "relative",
-          boxShadow: isRed ? "var(--red-glow-intense)" : "0 20px 50px rgba(0,0,0,0.5)",
-          color: "var(--text)",
-          border: `2px solid ${color}`
-        }}>
-          <button
-            onClick={() => setSelectedChallenge(null)}
-            style={{ position: "absolute", top: "25px", right: "25px", background: "var(--bg-secondary)", border: "none", color: "var(--muted)", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "0.2s" }}
-            onMouseEnter={(e) => e.target.style.background = "var(--card-border)"}
-            onMouseLeave={(e) => e.target.style.background = "var(--bg-secondary)"}
-          >
-            ✕
-          </button>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: color, marginBottom: "15px", fontWeight: "800", fontSize: "12px", letterSpacing: "1px" }}>
-            <Activity size={14} /> ACTIVE LABORATORY
-          </div>
-
-          <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--text)", marginBottom: "10px" }}>{selectedChallenge.title}</h2>
-          <div style={{ display: "flex", gap: "15px", marginBottom: "25px" }}>
-            <span style={{ fontSize: "12px", color: "var(--muted)", background: "var(--input-bg)", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>{selectedChallenge.difficulty}</span>
-            <span style={{ fontSize: "12px", color: "var(--muted)", background: "var(--input-bg)", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>{selectedChallenge.points} Points</span>
-          </div>
-
-          <p style={{ color: "var(--muted)", fontSize: "15px", lineHeight: "1.6", margin: "0 0 30px 0" }}>
-            {selectedChallenge.description}
-          </p>
-
-          <div style={{ marginBottom: "25px" }}>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <input
-                value={flagInput}
-                onChange={(e) => setFlagInput(e.target.value)}
-                placeholder="Enter capture flag format: FLAG{...}"
-                style={{
-                  flex: 1, background: "var(--bg-secondary)", border: `1px solid var(--card-border)`, color: "var(--text)",
-                  padding: "14px 18px", borderRadius: "12px", outline: "none",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "14px", transition: "0.2s"
-                }}
-                onFocus={(e) => e.target.style.borderColor = color}
-                onBlur={(e) => e.target.style.borderColor = "var(--card-border)"}
-              />
-              <button
-                onClick={user.user_id ? submitFlag : () => setSubmissionMsg({ text: "Please login to submit flags.", type: "error" })}
-                style={{ background: color, color: "#fff", border: "none", padding: "0 28px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", transition: "0.2s", boxShadow: `0 4px 12px ${color}40` }}
-                onMouseEnter={(e) => e.target.style.transform = "scale(1.02)"}
-                onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
-              >
-                SUBMIT
-              </button>
-            </div>
-            {submissionMsg.text && (
-              <div style={{ marginTop: "12px", textAlign: "center", fontWeight: "600", fontSize: "14px", color: submissionMsg.type === "success" ? "#2f9e44" : color }}>
-                {submissionMsg.text}
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #eee", paddingTop: "25px" }}>
-            <button
-              onClick={fetchHint}
-              style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}
-            >
-              <Zap size={14} /> Need a hint?
-            </button>
-            <a href="#/pwnbox" style={{ background: "var(--button-bg)", color: "var(--text)", textDecoration: "none", padding: "10px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px", border: "1px solid var(--card-border)" }}>
-              <Terminal size={14} /> Open PwnBox
-            </a>
-          </div>
-
-          {hint && (
-            <div style={{ marginTop: "20px", padding: "15px", background: "var(--input-bg)", border: "1px solid var(--card-border)", borderRadius: "12px", color: "var(--muted)", fontSize: "13px", fontFamily: "monospace" }}>
-              💡 {hint}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   const SelectionScreen = () => (
     <div style={{

@@ -30,6 +30,8 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
         }
     };
 
+    const connectedRef = useRef(false);
+
     useEffect(() => {
         // Initialize terminal
         const term = new Terminal({
@@ -65,6 +67,7 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
                 challenge_id: challenge_id
             });
             setConnected(true);
+            connectedRef.current = true;
         });
 
         socket.on('ssh_output', (data) => {
@@ -74,26 +77,30 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
         socket.on('ssh_error', (msg) => {
             term.write(`\r\n\x1b[31mConnection Error: ${msg}\x1b[0m\r\n`);
             setConnected(false);
+            connectedRef.current = false;
         });
 
         socket.on('ssh_disconnect', () => {
             term.write('\r\n\x1b[33mSession Terminated.\x1b[0m\r\n');
             setConnected(false);
+            connectedRef.current = false;
             if (onExit) onExit();
         });
 
         // Interactive Input & Command Tracking
         let currentCmd = "";
         term.onData((data) => {
-            if (connected) {
+            if (connectedRef.current) {
                 socket.emit('ssh_input', data);
 
                 // Track commands for AI
                 if (data === '\r' || data === '\n') {
                     if (currentCmd.trim()) {
-                        const newHistory = [...history, currentCmd.trim()].slice(-5);
-                        setHistory(newHistory);
-                        getMentorSuggestion(newHistory);
+                        setHistory(prev => {
+                            const newHistory = [...prev, currentCmd.trim()].slice(-5);
+                            getMentorSuggestion(newHistory);
+                            return newHistory;
+                        });
                     }
                     currentCmd = "";
                 } else if (data === '\x7f') { // Backspace
@@ -112,7 +119,7 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
             term.dispose();
             window.removeEventListener('resize', handleResize);
         };
-    }, [host, user, onExit, connected]);
+    }, [host, user, onExit]);
 
     return (
         <div style={{ position: "relative", height: "100%", width: "100%" }}>
