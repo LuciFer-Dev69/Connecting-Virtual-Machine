@@ -86,6 +86,11 @@
     color: #cbd5e1;
 }
 
+.tool-tag.blue {
+    border-color: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+}
+
 /* PwnBox Layout */
 .pwnbox-deployment {
     height: 70vh;
@@ -237,6 +242,45 @@
 .red-mission .intel-text {
     border-left-color: var(--accent-red);
     background: rgba(239, 68, 68, 0.02);
+}
+
+.red-mission .mission-description::before {
+    content: "OFFENSOR_PROTOCOL_ACTIVE";
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--accent-red);
+    margin-bottom: 8px;
+    opacity: 0.6;
+}
+
+/* Blue Team Specific In-Page theme */
+.blue-mission .meta-item {
+    background: rgba(59, 130, 246, 0.05);
+    color: var(--accent-blue);
+}
+
+.blue-mission .btn-submit {
+    background: var(--accent-blue);
+}
+
+.blue-mission .flag-input:focus {
+    border-color: var(--accent-blue);
+}
+
+.blue-mission .intel-text {
+    border-left-color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.02);
+}
+
+.blue-mission .mission-description::before {
+    content: "PROTECTOR_STATUS_ENGAGED";
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+    opacity: 0.6;
 }
 
 @media (max-width: 1024px) {

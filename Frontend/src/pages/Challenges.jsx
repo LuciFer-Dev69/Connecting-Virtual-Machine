@@ -34,7 +34,11 @@ export default function Challenges({ initialView = "all" }) {
 
       let filtered = data;
       if (isRed) {
-        filtered = data.filter(c => !c.category?.toLowerCase().includes("blue") && !c.category?.toLowerCase().includes("real"));
+        filtered = data.filter(c =>
+          !c.category?.toLowerCase().includes("blue") &&
+          !c.category?.toLowerCase().includes("real") &&
+          !c.category?.toLowerCase().includes("ai")
+        );
       } else if (isBlue) {
         filtered = data.filter(c => c.category?.toLowerCase().includes("blue") || c.category?.toLowerCase().includes("forensics"));
       }
@@ -58,9 +62,6 @@ export default function Challenges({ initialView = "all" }) {
     const cat = challenge.category?.toLowerCase() || '';
     if (cat.includes('blue') || cat.includes('forensics')) {
       return `${ROUTES.BLUE_TEAM.BASE}/challenge/${challenge.id}`;
-    }
-    if (cat.includes('real') || cat.includes('corporate')) {
-      return `${ROUTES.REAL_LIFE.BASE}/challenge/${challenge.id}`;
     }
     return `${ROUTES.RED_TEAM.BASE}/challenge/${challenge.id}`;
   };
@@ -117,7 +118,7 @@ export default function Challenges({ initialView = "all" }) {
           </div>
 
           <div className="deck-filters">
-            {['All', 'Easy', 'Medium', 'Hard', 'Insane'].map(diff => (
+            {['All', 'Easy', 'Medium', 'Hard'].map(diff => (
               <button
                 key={diff}
                 onClick={() => setFilterDifficulty(diff)}

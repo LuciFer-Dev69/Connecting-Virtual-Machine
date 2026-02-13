@@ -6,12 +6,19 @@ challenges_bp = Blueprint('challenges', __name__)
 @challenges_bp.route('/', methods=['GET'])
 def get_challenges():
     try:
+        category = request.args.get('category')
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute(
-            "SELECT id, title, description, category, difficulty, level FROM challenges ORDER BY level, category"
-        )
+        if category:
+            cursor.execute(
+                "SELECT id, title, description, category, difficulty, level, points, image_url FROM challenges WHERE category = %s ORDER BY level",
+                (category,)
+            )
+        else:
+            cursor.execute(
+                "SELECT id, title, description, category, difficulty, level, points, image_url FROM challenges ORDER BY level, category"
+            )
         challenges = cursor.fetchall()
 
         cursor.close()
@@ -31,7 +38,7 @@ def get_challenge(challenge_id):
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute(
-            "SELECT id, title, description, category, difficulty, level FROM challenges WHERE id = %s",
+            "SELECT id, title, description, category, difficulty, level, points, image_url FROM challenges WHERE id = %s",
             (challenge_id,)
         )
         challenge = cursor.fetchone()
@@ -54,11 +61,14 @@ def submit_flag():
     try:
         data = request.get_json()
         user_id = data.get('user_id')
-        challenge_id = data.get('id')
+        challenge_id = data.get('challenge_id') or data.get('id')  # Support both
         flag = data.get('flag')
 
         if not user_id or not challenge_id or not flag:
-            return jsonify({"error": "Missing required fields"}), 400
+            return jsonify({
+                "status": "error",
+                "message": "Missing required fields"
+            }), 400
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -70,9 +80,12 @@ def submit_flag():
         if not challenge:
             cursor.close()
             conn.close()
-            return jsonify({"error": "Challenge not found"}), 404
+            return jsonify({
+                "status": "error", 
+                "message": "Challenge not found"
+            }), 404
 
-        is_correct = flag.strip() == challenge['flag'].strip()
+        is_correct = flag.strip().lower() == challenge['flag'].strip().lower()
 
         # Check if already completed
         cursor.execute(
@@ -82,7 +95,10 @@ def submit_flag():
         if cursor.fetchone():
             cursor.close()
             conn.close()
-            return jsonify({"result": "Already completed this challenge!"}), 200
+            return jsonify({
+                "status": "correct",
+                "message": "Already completed this challenge!"
+            }), 200
 
         # Insert submission
         cursor.execute(
@@ -93,14 +109,15 @@ def submit_flag():
 
         if is_correct:
             # Update user progress
-            cursor.execute("UPDATE users SET progress = progress + 5 WHERE user_id = %s", (user_id,))
+            cursor.execute("UPDATE users SET progress = progress + %s WHERE user_id = %s", (challenge['points'], user_id))
             conn.commit()
 
             # Update user stats
             stat_field = 'beginner'
-            if challenge['level'] >= 4:
+            level_val = challenge.get('level', 1) or 1
+            if level_val >= 4:
                 stat_field = 'advanced'
-            elif challenge['level'] == 3:
+            elif level_val == 3:
                 stat_field = 'intermediate'
 
             cursor.execute(
@@ -111,13 +128,20 @@ def submit_flag():
             )
             conn.commit()
 
-            cursor.close()
-            conn.close()
-            return jsonify({"result": "🎉 Correct! Well done!"}), 200
+            return jsonify({
+                "status": "correct",
+                "result": "🎉 Correct! Well done!",
+                "message": "🎉 Correct! Well done!",
+                "points": challenge['points']
+            }), 200
         else:
             cursor.close()
             conn.close()
-            return jsonify({"result": "❌ Incorrect flag. Try again!"}), 200
+            return jsonify({
+                "status": "incorrect",
+                "result": "❌ Incorrect flag. Try again!",
+                "message": "❌ Incorrect flag. Try again!"
+            }), 200
 
     except Exception as e:
         print(f"Submit error: {e}")

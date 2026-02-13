@@ -35,7 +35,6 @@ const Footer = () => {
                             <a href="#/modules" className="footer-link">Teams</a>
                             <a href="#/modules" className="footer-link">Courses & Certifications</a>
                             <a href="#/pwnbox" className="footer-link">Cyber Ranges</a>
-                            <a href="#/real-life" className="footer-link">Enterprise Attack Simulations</a>
                             <a href="#/pwnbox" className="footer-link">Cloud Infrastructure</a>
                         </div>
                     </div>
@@ -57,7 +56,6 @@ const Footer = () => {
                             <a href="#/community" className="footer-link">Community</a>
                             <a href="#/blog" className="footer-link">Blog</a>
                             <a href="#/reports" className="footer-link">Industry Reports</a>
-                            <a href="#/ai-labs" className="footer-link">Learn with AI</a>
                             <a href="#/careers" className="footer-link">Careers</a>
                         </div>
                     </div>

@@ -25,8 +25,8 @@ export const NavigationProvider = ({ children }) => {
             setActiveSection('red-team');
         } else if (path.startsWith(ROUTES.BLUE_TEAM.BASE)) {
             setActiveSection('blue-team');
-        } else if (path.startsWith(ROUTES.AI_LABS.BASE)) {
-            setActiveSection('ai-labs');
+        } else if (path.startsWith(ROUTES.AI_INJECTOR.BASE)) {
+            setActiveSection('ai-injector');
         } else if (path.startsWith(ROUTES.REAL_LIFE.BASE)) {
             setActiveSection('real-life');
         } else if (path.startsWith(ROUTES.PWNBOX)) {

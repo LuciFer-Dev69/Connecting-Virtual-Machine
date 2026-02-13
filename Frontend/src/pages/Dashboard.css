@@ -285,30 +285,40 @@
 /* Activity Heatmap */
 .activity-heatmap {
     display: grid;
-    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    grid-auto-flow: column;
     gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 8px;
 }
 
 .heat-box {
     aspect-ratio: 1;
     border-radius: 2px;
-    background-color: #1e293b;
+    background-color: rgba(255, 255, 255, 0.03);
+    /* Blank - No Activity */
+    transition: all 0.3s ease;
 }
 
 .heat-box.lvl-1 {
-    background-color: rgba(0, 212, 255, 0.2);
+    background-color: rgba(14, 165, 233, 0.3);
+    /* Daily Active - Light Blue (Subtle) */
 }
 
 .heat-box.lvl-2 {
-    background-color: rgba(0, 212, 255, 0.4);
+    background-color: rgba(14, 165, 233, 0.6);
+    /* Daily Active - Light Blue (Medium) */
 }
 
 .heat-box.lvl-3 {
-    background-color: rgba(0, 212, 255, 0.7);
+    background-color: #0284c7;
+    /* Completed (High Activity) - Solid Blue */
 }
 
 .heat-box.lvl-4 {
-    background-color: var(--brand-primary);
+    background-color: #1e40af;
+    /* Heroic / Peak Performance - Dark Blue */
+    box-shadow: 0 0 8px rgba(30, 64, 175, 0.4);
 }
 
 /* Skills & Achievements */

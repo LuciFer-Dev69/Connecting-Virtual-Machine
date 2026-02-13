@@ -44,6 +44,22 @@ Execute the following to start the platform:
 docker-compose up --build -d
 ```
 
+### 4. AI Model Initialization (CRITICAL STEP)
+After the containers are running, you must pull the required AI models into the `chakra_ollama` container.
+**Open a new terminal and run:**
+
+1.  **Pull SOC Analyst Model:**
+    ```bash
+    docker exec -it chakra_ollama ollama pull qwen3:8b
+    ```
+
+2.  **Pull Prompt Injector Model:**
+    ```bash
+    docker exec -it chakra_ollama ollama pull gpt-oss:20b
+    ```
+
+*(Note: This uses the container's volume, so you only need to do this once.)*
+
 ### 4. Database Population
 After the containers are healthy, you **MUST** run the initialization script:
 ```bash
@@ -88,5 +104,13 @@ The platform implements a strict stability protocol for PwnBox instances:
 - Ensure only trusted users have access to your Docker host.
 
 ---
+
+
+---
+
+## 🧠 AI Prompt Injection Lab
+The **Prompt Injection Lab** uses a specialized model (`gpt-oss:20b`) to simulate a "Live AI" security assistant (`AstraNova`).
+- **Goal**: tricked the AI into revealing the hidden flag.
+- **Engine**: The backend automatically routes injection attempts to the high-fidelity model.
 
 **Developed by LuciFer-Dev69**

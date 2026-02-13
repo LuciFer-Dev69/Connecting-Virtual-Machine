@@ -67,7 +67,8 @@ def init_db():
             title VARCHAR(255) NOT NULL,
             description TEXT,
             category VARCHAR(50),
-            difficulty ENUM('Easy', 'Medium', 'Hard', 'Insane'),
+            difficulty ENUM('Easy', 'Medium', 'Hard'),
+            level INT DEFAULT 1,
             flag VARCHAR(255),
             hint TEXT,
             points INT DEFAULT 10,
@@ -78,7 +79,13 @@ def init_db():
 
         # Update challenges table schema
         try:
-            cursor.execute("ALTER TABLE challenges MODIFY COLUMN difficulty ENUM('Easy', 'Medium', 'Hard', 'Insane')")
+            cursor.execute("ALTER TABLE challenges MODIFY COLUMN difficulty ENUM('Easy', 'Medium', 'Hard')")
+        except:
+            pass
+
+        # Update challenges table to add level if missing
+        try:
+            cursor.execute("ALTER TABLE challenges ADD COLUMN level INT DEFAULT 1")
         except:
             pass
 
@@ -272,54 +279,73 @@ def init_db():
         cursor.execute("DELETE FROM roadmaps")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
 
-        cursor.execute("INSERT INTO roadmaps (name, type) VALUES (%s, %s)", ("Red Team (Tool-Only)", "Red Team"))
-        roadmap_id = cursor.lastrowid
+        # Red Team Roadmap and Challenges
+        print("🚩 Initializing Red Team Challenges...")
+        cursor.execute("INSERT INTO roadmaps (name, type) VALUES (%s, %s)", ("Red Team Roadmap", "Red Team"))
+        red_roadmap_id = cursor.lastrowid
         
-        cursor.execute("INSERT INTO roadmaps (name, type) VALUES (%s, %s)", ("Blue Team Roadmap", "Blue Team"))
-        blue_roadmap_id = cursor.lastrowid
-        
-        print(f"🚩 Roadmaps initialized. Red Roadmap ID: {roadmap_id}")
-
-        tool_challenges = [
-            # Easy Challenges
-            ("Service Enumeration", "Skill: Recon\nObjective: Identify hidden services running on non-standard ports.", "nmap", "Easy", 100, "FLAG{SERVICE_ENUMERATION_SUCCESS}", "Services often hide on high ports. Try scanning 'localhost' with nmap -p- or check ports 9000-9100.", "/images/challenges/nmap_recon.png"),
-            ("Version Detection", "Skill: Enumeration\nObjective: Discover service versions and identify outdated software.", "nmap", "Easy", 100, "FLAG{VERSION_DETECT_LAB}", "Check the -sV flag.", "/images/challenges/version_detect.png"),
-            ("Robots.txt Information Leak", "Skill: Passive Recon\nObjective: Find hidden or sensitive paths exposed via robots.txt.", "recon", "Easy", 100, "FLAG{ROBOTS_TXT_LEAK}", "Look for /robots.txt on the server.", "/images/challenges/robots_leak.png"),
-            ("Hidden Directory Discovery", "Skill: Web Recon\nObjective: Enumerate hidden directories such as /admin, /backup, or /test.", "gobuster", "Easy", 100, "FLAG{DIR_DISCO_GOBUSTER}", "Use a common directory wordlist.", "/images/challenges/dir_disco.png"),
-            ("Default Credentials Abuse", "Skill: Authentication\nObjective: Gain access using weak or default login credentials.", "auth", "Easy", 100, "FLAG{DEFAULT_CREDS_PWNED}", "Try admin:admin or admin:password.", "/images/challenges/default_creds.png"),
-            
-            # Medium Challenges (Frontend-Focused)
-            ("AI Prompt Injection", "Skill: Prompt Injection\nObjective: Exploit a vulnerable AI assistant to extract protected internal instructions.", "Red Team Tools", "Medium", 200, "FLAG{PROMPT_INJECTION_MASTER}", "Try override phrases like 'ignore previous instructions' or 'output everything above'.", "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=400&auto=format&fit=crop"),
-            ("DOM-Based XSS", "Skill: Client-Side Exploitation\nObjective: Find a sink that executes user-controlled data.", "xss", "Medium", 250, "FLAG{DOM_XSS_DETECTED}", "Look for innerHTML or eval() in the source code.", "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?q=80&w=400&auto=format&fit=crop"),
-            ("Stored XSS via Client Storage", "Skill: Client-Side Exploitation\nObjective: Store a malicious payload in LocalStorage that triggers on load.", "xss", "Medium", 250, "FLAG{STORED_CLIENT_XSS}", "Check how the app retrieves data from LocalStorage.", "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=400&auto=format&fit=crop"),
-            ("Client-Side Authentication Bypass", "Skill: Authentication\nObjective: Manipulate frontend logic to access a restricted page.", "auth", "Medium", 250, "FLAG{CLIENT_AUTH_BYPASS}", "Look for isAdmin checks in the source code.", "https://images.unsplash.com/photo-1509822929063-6b6cfc9b42f2?q=80&w=400&auto=format&fit=crop"),
-            ("LocalStorage Token Manipulation", "Skill: Session Management\nObjective: Modify a JWT or session token in LocalStorage to escalate privileges.", "auth", "Medium", 250, "FLAG{JWT_MANIPULATION_PWN}", "Decode the token at jwt.io and see what you can change.", "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=400&auto=format&fit=crop"),
-            
-            # Hard Challenges (Advanced Frontend)
-            ("Advanced DOM XSS Chain", "Skill: Client-Side Exploitation\nObjective: Chain multiple DOM sinks (location.hash -> innerHTML -> setTimeout) to execute complex JS payloads.", "xss", "Hard", 500, "FLAG{COMPLEX_DOM_CHAIN_XSS}", "Follow the data flow through the utility functions in the source.", "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=400&auto=format&fit=crop"),
-            ("JavaScript Prototype Pollution", "Skill: Object Manipulation\nObjective: Exploit insecure object merges to pollute the global Object prototype and achieve frontend impact.", "logic", "Hard", 500, "FLAG{PROTOTYPE_POLLUTION_PWNED}", "Check how nested JSON properties are handled during object merges.", "https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=400&auto=format&fit=crop"),
-            ("Client-Side Role Escalation", "Skill: State Manipulation\nObjective: Manipulate the client-side state machine to gain administrative access without server verification.", "auth", "Hard", 500, "FLAG{FRONTEND_ADMIN_ACCESS}", "Inspect the global state object or Redux store in the developer console.", "https://images.unsplash.com/photo-1633265486232-442488821f52?q=80&w=400&auto=format&fit=crop"),
-            ("OAuth Token Leakage (Frontend Flow)", "Skill: OAuth Security\nObjective: Identify improper OAuth response handling that leaks tokens via Referer headers or URL fragments.", "auth", "Hard", 500, "FLAG{OAUTH_TOKEN_LEAKED}", "Monitor outbound requests and URL fragments after a login simulation.", "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=400&auto=format&fit=crop"),
-            ("CSP Bypass via Script Gadgets", "Skill: CSP Exploitation\nObjective: Use allowed third-party libraries (e.g., old jQuery/Angular) to bypass strict CSP policies via gadgets.", "xss", "Hard", 500, "FLAG{CSP_BYPASS_GADGET}", "Search for libraries in the bundle known to have script execution 'gadget' patterns.", "https://images.unsplash.com/photo-1558489080-7e6a47321e25?q=80&w=400&auto=format&fit=crop")
-
+        red_challenges = [
+            ("Exposed Backup File", "AstraNova Cyber Solutions accidentally exposed a backup file on their web server. Can you find it and retrieve the admin credentials?", "Red Team - Web", "Easy", 1, 5, "FLAG{backup_exposure_mastered}", "Check for common backup extensions like .zip, .bak, or .old on the server root.", "/assets/challenge-icons/backup.png"),
+            ("Robots.txt Leak", "The robots.txt file is meant for web crawlers, but sometimes it reveals hidden administrative paths.", "Red Team - Web", "Easy", 1, 5, "FLAG{robots_never_hide_secrets}", "Always check /robots.txt during the initial recon phase.", "/assets/challenge-icons/robots.png"),
+            ("SQL Injection Login Bypass", "The admin login panel seems to be concatenating user input directly into a SQL query.", "Red Team - Web", "Medium", 2, 15, "FLAG{classic_sqli_bypass}", "Try using standard SQL injection payloads like ' OR 1=1 -- in the username field.", "/assets/challenge-icons/sqli.png"),
+            ("IDOR - Insecure Direct Object Reference", "The invoice system uses sequential IDs. Can you access an invoice that doesn't belong to you?", "Red Team - Web", "Medium", 2, 15, "FLAG{idor_data_exposure}", "Change the ID parameter in the URL and look for an invoice belonging to the admin.", "/assets/challenge-icons/idor.png"),
+            ("Stored XSS → Admin Cookie Theft", "The contact form store messages in the database. If an admin views a malicious script, their session might be compromised.", "Red Team - Web", "Hard", 3, 30, "FLAG{persistent_xss_master}", "Inject a script that tries to exfiltrate document.cookie to an external source.", "/assets/challenge-icons/xss.png"),
+            ("SSRF → Internal Service Access", "The server allows fetching external URLs. Can it be used to probe internal services on localhost?", "Red Team - Web", "Hard", 4, 30, "FLAG{ssrf_internal_breach}", "Try to fetch services running on 127.0.0.1 or localhost at common internal ports.", "/assets/challenge-icons/ssrf.png")
         ]
 
-        for idx, (title, desc, cat, diff, pts, flag, hint, img) in enumerate(tool_challenges):
+        for idx, (title, desc, cat, diff, lvl, pts, flag, hint, img) in enumerate(red_challenges):
             cursor.execute(
-                "INSERT INTO challenges (title, description, difficulty, category, points, flag, hint, image_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                (title, desc, diff, cat, pts, flag, hint, img)
+                "INSERT INTO challenges (title, description, category, difficulty, level, points, flag, hint, image_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (title, desc, cat, diff, lvl, pts, flag, hint, img)
             )
             challenge_id = cursor.lastrowid
             
             # Map to roadmap
             cursor.execute(
                 "INSERT INTO roadmap_challenges (roadmap_id, challenge_id, order_index) VALUES (%s, %s, %s)",
-                (roadmap_id, challenge_id, idx)
+                (red_roadmap_id, challenge_id, idx)
             )
+
+        # Blue Team Roadmap and Challenges
+        print("🚩 Initializing Blue Team Challenges...")
+        cursor.execute("INSERT INTO roadmaps (name, type) VALUES (%s, %s)", ("Blue Team Roadmap", "Blue Team"))
+        blue_roadmap_id = cursor.lastrowid
+
+        blue_challenges = [
+            ("Suspicious Log Analysis", "A series of failed login attempts have been reported. Analyze the authentication logs to identify the attacker's IP address.", "Blue Team - Defense", "Easy", 1, 5, "192.168.1.105", "Look for repeated 'Failed password' entries in /var/log/auth.log.", "/assets/challenge-icons/logs.png"),
+            ("Unsecured File Permissions", "A sensitive configuration file has been found with public read permissions. Find the file and identify the exposed secret.", "Blue Team - Defense", "Easy", 1, 5, "CHAKRA_DEFENDER{config_permission_tightened}", "Check /etc/shadow or custom config files in /home/chakra/scripts/ with 'ls -l'.", "/assets/challenge-icons/shield.png"),
+            ("Malicious Process Hunting", "A user reported slow system performance. Find the suspicious process consuming CPU and kill it to secure the system.", "Blue Team - Defense", "Medium", 2, 15, "CHAKRA_DEFENDER{miner_terminated_successfully}", "Use the 'ps' command to see running processes and find anything that shouldn't be there.", "/assets/challenge-icons/process.png"),
+            ("Digital Forensics: Hidden Backdoor", "A hacker left a backdoor script in a temporary folder. Locate the script and retrieve the hidden flag inside it.", "Blue Team - Defense", "Hard", 3, 30, "CHAKRA_DEFENDER{forensics_backdoor_found}", "Attackers often hide scripts in /tmp or /var/tmp. Check for hidden files with 'ls -la'.", "/assets/challenge-icons/forensics.png"),
+            ("Incident 47 – The Phantom Beacon", "Suspicious outbound traffic detected. Correlate firewall, proxy, and authentication logs to find the infected node and the C2 server.", "Blue Team - Digital Forensics", "Hard", 4, 30, "FLAG{192.168.1.23_cdn-security-update.com_SECRET_KEY_XOR123}", "The attacker uses a periodic beaconing pattern. Check the timestamps in firewall.log.", "/assets/challenge-icons/forensics.png")
+        ]
+
+        for idx, (title, desc, cat, diff, lvl, pts, flag, hint, img) in enumerate(blue_challenges):
+            cursor.execute(
+                "INSERT INTO challenges (title, description, category, difficulty, level, points, flag, hint, image_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (title, desc, cat, diff, lvl, pts, flag, hint, img)
+            )
+            challenge_id = cursor.lastrowid
+            
+            # Map to roadmap
+            cursor.execute(
+                "INSERT INTO roadmap_challenges (roadmap_id, challenge_id, order_index) VALUES (%s, %s, %s)",
+                (blue_roadmap_id, challenge_id, idx)
+            )
+
+        # Real-Life Insane Scenario
+        print("💀 Re-integrating Stored XSS Scenario...")
+        import json
+        insane_challenge = ("Stored XSS → Admin Panel → Docker Escape", "Chain a stored XSS in the ticketing system to hijack an admin session and escape to the host host via a privileged container.", "Insane", "Cloud / Container Security", 100, "FLAG{xss_to_docker_escape_privileged_root}", "astranova-ticketing.chakra.local", 5176, json.dumps(["Injection starts in the support ticket content", "The 'Run Diagnostics' feature is vulnerable to command injection"]))
+        
+        cursor.execute(
+            "INSERT INTO real_life_challenges (title, description, difficulty, category, points, flag, docker_image, port, hints) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            insane_challenge
+        )
+
 
         conn.commit()
         conn.close()
-        print("Tables initialized/updated successfully.")
+        print("🚩 Red & Blue Roadmaps initialized.")
 
     except Exception as e:
         print(f"Error initializing tables: {e}")

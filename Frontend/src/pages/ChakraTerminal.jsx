@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import WebTerminal from "../components/WebTerminal";
+import FakeTerminal from "../components/FakeTerminal";
+import AiMentorPopup from "../components/AiMentorPopup";
 import PageTemplate from "../components/templates/PageTemplate";
 import { Terminal as TerminalIcon, Shield, Cpu, Zap, Activity } from "lucide-react";
 import { API_BASE } from "../config";
@@ -10,37 +11,17 @@ export default function ChakraTerminal() {
     const [flag, setFlag] = useState("");
     const [pwnboxInfo, setPwnboxInfo] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [lastCommand, setLastCommand] = useState("");
+
+    const handleCommandExplainer = React.useCallback((cmd) => {
+        setLastCommand(cmd);
+    }, []);
 
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     useEffect(() => {
-        const userId = user.user_id || user.id;
-        if (!userId) {
-            setLoading(false);
-            return;
-        }
-
-        const spawn = async () => {
-            try {
-                const res = await fetch(`${API_BASE}/pwnbox/spawn`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ user_id: userId })
-                });
-                const data = await res.json();
-                if (data.error) {
-                    console.error("Spawn error returned:", data.error);
-                } else {
-                    setPwnboxInfo(data);
-                }
-            } catch (err) {
-                console.error("Spawn fetch failure:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        spawn();
-    }, [user.user_id, user.id]);
+        setLoading(false);
+    }, []);
 
     const handleLevelSolve = (content) => {
         if (content.includes("chakra{dashed_filename_master")) {
@@ -83,6 +64,8 @@ export default function ChakraTerminal() {
                         </p>
                     </div>
 
+                    <AiMentorPopup command={lastCommand} />
+
                     {/* Terminal Console Card */}
                     <div style={{
                         background: "#111827",
@@ -117,10 +100,12 @@ export default function ChakraTerminal() {
                             height: "70vh",
                             minHeight: "450px",
                             maxHeight: "800px",
-                            background: "#0D0D0D"
+                            background: "#0D0D0D",
+                            position: "relative"
                         }}>
-                            <WebTerminal
-                                connectionInfo={pwnboxInfo}
+                            <FakeTerminal
+                                challenge_title={`Chakra Level ${level}`}
+                                onCommand={handleCommandExplainer}
                             />
                         </div>
                     </div>

@@ -22,11 +22,6 @@ const RedTeamLayout = () => {
             path: 'roadmap',
             icon: <Map size={18} />
         },
-        {
-            label: 'Tools',
-            path: ROUTES.PWNBOX,
-            icon: <Terminal size={18} />
-        },
         { type: 'divider' },
         {
             label: 'Progress',
@@ -41,7 +36,7 @@ const RedTeamLayout = () => {
     ];
 
     return (
-        <div style={{ display: 'flex', height: '100%', width: '100%' }}>
+        <div className="theme-red" style={{ display: 'flex', height: '100%', width: '100%' }}>
             <Sidebar items={sidebarItems} title="RED TEAM OPS" variant="red-team" />
             <div style={{
                 flex: 1,

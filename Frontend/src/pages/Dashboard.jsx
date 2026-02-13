@@ -59,11 +59,24 @@ export default function Dashboard() {
   const xpToNextLevel = level * 20;
   const xpProgressPercent = (progress % 20) / 20 * 100;
 
-  // Mock Heatmap Data
+  // Biased Heatmap Logic (Simulating clusters of activity)
   const renderHeatmap = () => {
     const bubbles = [];
-    for (let i = 0; i < 60; i++) {
-      const lvl = Math.floor(Math.random() * 5); // 0-4
+    const totalBoxes = 120; // 20 columns * 6 rows roughly
+
+    // Weighted random logic for a more "organic" look
+    for (let i = 0; i < totalBoxes; i++) {
+      let lvl = 0;
+      const seed = Math.random();
+
+      if (seed > 0.85) {
+        lvl = Math.random() > 0.5 ? 4 : 3; // Peak Activity (Dark Blue - Completed)
+      } else if (seed > 0.55) {
+        lvl = Math.random() > 0.5 ? 2 : 1; // Active Days (Light Blue - Active)
+      } else {
+        lvl = 0; // Blank / Idle
+      }
+
       bubbles.push(<div key={i} className={`heat-box lvl-${lvl}`}></div>);
     }
     return bubbles;

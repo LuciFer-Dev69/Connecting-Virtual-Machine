@@ -39,6 +39,7 @@ services:
       - DB_NAME=chakraDB
       - FLASK_ENV=development
       - FLASK_APP=app.py
+      - OLLAMA_URL=http://ollama:11434/api/generate
     volumes:
       - ./Backend:/app
       - ./vulnerable-apps:/vulnerable-apps
@@ -46,6 +47,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      ollama:
+        condition: service_started
     networks:
       - chakra-network
 
@@ -121,9 +124,29 @@ services:
     networks:
       - chakra-network
 
+  # Ollama AI Engine
+  ollama:
+    image: ollama/ollama:latest
+    container_name: chakra_ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_storage:/root/.ollama
+    networks:
+      - chakra-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
 networks:
   chakra-network:
     driver: bridge
 
 volumes:
   db_data:
+  ollama_storage:

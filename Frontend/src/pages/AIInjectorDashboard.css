@@ -1,0 +1,260 @@
+.dashboard-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    backdrop-filter: blur(8px);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.stat-value {
+    color: #f8fafc;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.dashboard-main {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+}
+
+.content-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-main {
+        flex-direction: column;
+    }
+
+    .side-panel {
+        width: 100%;
+    }
+}
+
+.panel-header h2 {
+    color: #f8fafc;
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.panel-header p {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.challenge-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.challenge-item-card {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.challenge-item-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.challenge-item-card.solved {
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-meta {
+    display: flex;
+    gap: 8px;
+}
+
+.difficulty-tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.difficulty-tag.easy {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.difficulty-tag.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.difficulty-tag.hard {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.points-tag {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.solved-badge {
+    color: #10b981;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border: 1px solid #10b981;
+    border-radius: 4px;
+}
+
+.card-body h3 {
+    color: #f8fafc;
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.card-body p {
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.card-footer {
+    margin-top: auto;
+}
+
+.btn-enter-lab {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #f8fafc;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-enter-lab:hover {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.intel-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.intel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 12px;
+}
+
+.intel-header h3 {
+    color: #f8fafc;
+    font-size: 16px;
+}
+
+.intel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.intel-item strong {
+    display: block;
+    color: #3b82f6;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.intel-item p {
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

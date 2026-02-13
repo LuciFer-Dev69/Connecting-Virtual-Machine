@@ -1,0 +1,243 @@
+.blue-dashboard-container {
+    min-height: 100%;
+    background-color: transparent;
+    color: #fff;
+}
+
+.blue-dashboard-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+}
+
+.blue-dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.protocol-indicator {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-blue);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+}
+
+.blue-dashboard-title {
+    font-size: 3rem;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.blue-dashboard-title .outline {
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.4);
+    color: transparent;
+}
+
+.blue-dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 1.5rem;
+}
+
+.blue-dashboard-card {
+    background: rgba(10, 15, 20, 0.8);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.blue-dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--accent-blue);
+    opacity: 0.3;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 0.75rem;
+}
+
+.card-header h3 {
+    font-size: 0.85rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Heatmap Graph */
+.blue-heatmap-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    grid-auto-flow: column;
+    gap: 4px;
+    margin-bottom: 1rem;
+}
+
+.blue-heat-box {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.blue-heat-box.lvl-1 {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.blue-heat-box.lvl-2 {
+    background: rgba(59, 130, 246, 0.35);
+}
+
+.blue-heat-box.lvl-3 {
+    background: rgba(59, 130, 246, 0.65);
+}
+
+.blue-heat-box.lvl-4 {
+    background: var(--accent-blue);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.legend-boxes {
+    display: flex;
+    gap: 3px;
+}
+
+.legend-boxes .blue-heat-box {
+    width: 10px;
+    height: 10px;
+}
+
+/* Stats Row */
+.stats-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.1em;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-progress-bg {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    width: 100%;
+}
+
+.stat-progress-fill {
+    height: 100%;
+    background: var(--accent-blue);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    border-radius: 2px;
+}
+
+/* Snippet List */
+.snippet-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.snippet-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.snippet-tier {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.snippet-xp {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--accent-blue);
+}
+
+.view-all-link {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* monitoring card */
+.monitoring-card p {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+.blue-deploy-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.blue-deploy-btn:hover {
+    background: #1d4ed8;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+@media (max-width: 1024px) {
+    .blue-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}

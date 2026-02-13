@@ -137,3 +137,91 @@ pre {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
+
+/* --- Theme Overrides --- */
+
+.theme-red {
+    --brand-primary: #ef4444;
+    --brand-secondary: #ef4444;
+    --accent-blue: #ef4444;
+    --primary-glow: rgba(239, 68, 68, 0.4);
+    --border-primary: rgba(239, 68, 68, 0.2);
+    --bg-sidebar: #120303;
+    --bg-app: #080101;
+}
+
+.theme-red .dashboard-cover {
+    background: linear-gradient(90deg, #1a0505 0%, #310808 100%) !important;
+}
+
+.theme-red .progress-bar-fill {
+    background: linear-gradient(90deg, #ef4444, #991b1b) !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4) !important;
+}
+
+.theme-red .heat-box.lvl-1 {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+.theme-red .heat-box.lvl-2 {
+    background-color: rgba(239, 68, 68, 0.4);
+}
+
+.theme-red .heat-box.lvl-3 {
+    background-color: rgba(239, 68, 68, 0.7);
+}
+
+.theme-red .heat-box.lvl-4 {
+    background-color: #ef4444;
+}
+
+.theme-red .challenge-node-card:hover {
+    border-color: #ef4444;
+}
+
+.theme-red .node-points {
+    color: #ef4444;
+}
+
+.theme-blue {
+    --brand-primary: #0084ff;
+    --brand-secondary: #0084ff;
+    --accent-blue: #0084ff;
+    --primary-glow: rgba(0, 132, 255, 0.4);
+    --border-primary: rgba(0, 132, 255, 0.2);
+    --bg-sidebar: #030a12;
+    --bg-app: #01050a;
+}
+
+.theme-blue .dashboard-cover {
+    background: linear-gradient(90deg, #050d1a 0%, #081a31 100%) !important;
+}
+
+.theme-blue .progress-bar-fill {
+    background: linear-gradient(90deg, #0084ff, #1e3a8a) !important;
+    box-shadow: 0 0 10px rgba(0, 132, 255, 0.4) !important;
+}
+
+.theme-blue .heat-box.lvl-1 {
+    background-color: rgba(0, 132, 255, 0.2);
+}
+
+.theme-blue .heat-box.lvl-2 {
+    background-color: rgba(0, 132, 255, 0.4);
+}
+
+.theme-blue .heat-box.lvl-3 {
+    background-color: rgba(0, 132, 255, 0.7);
+}
+
+.theme-blue .heat-box.lvl-4 {
+    background-color: #0084ff;
+}
+
+.theme-blue .challenge-node-card:hover {
+    border-color: #0084ff;
+}
+
+.theme-blue .node-points {
+    color: #0084ff;
+}

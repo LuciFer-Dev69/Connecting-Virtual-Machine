@@ -7,8 +7,7 @@ import { NavigationProvider } from "./context/NavigationContext";
 import RootLayout from "./layouts/RootLayout";
 import RedTeamLayout from "./layouts/RedTeamLayout";
 import BlueTeamLayout from "./layouts/BlueTeamLayout";
-import AILabLayout from "./layouts/AILabLayout";
-import RealLifeLayout from "./layouts/RealLifeLayout";
+import AIInjectorLayout from "./layouts/AIInjectorLayout";
 import PwnBoxLayout from "./layouts/PwnBoxLayout";
 
 // Pages
@@ -22,11 +21,19 @@ import Challenge from "./pages/Challenge";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import ChakraTerminal from "./pages/ChakraTerminal";
-import AIPromptInjectionLab from "./pages/AIPromptInjectionLab";
-import AILogAnalyzer from "./pages/AILogAnalyzer";
+import AIInjectorDashboard from "./pages/AIInjectorDashboard";
+import AIInjectorLab from "./pages/AIInjectorLab";
 import RealLifeChallenges from "./pages/RealLifeChallenges";
-import RealLifeChallenge from "./pages/RealLifeChallenge";
+import RealLifeChallengeDetail from "./pages/RealLifeChallengeDetail";
+import RealLifeDashboard from "./pages/RealLifeDashboard";
+import RealLifeRoadmap from "./pages/RealLifeRoadmap";
+import RealLifeLayout from "./layouts/RealLifeLayout";
+import RedTeamDashboard from "./pages/RedTeamDashboard";
+import RedTeamRoadmap from "./pages/RedTeamRoadmap";
+import BlueTeamDashboard from "./pages/BlueTeamDashboard";
+import BlueTeamRoadmap from "./pages/BlueTeamRoadmap";
 import Modules from "./pages/Modules";
+import SOCDashboard from "./pages/SOCDashboard";
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -68,9 +75,9 @@ export default function App() {
             {/* Red Team Section */}
             <Route path="red-team" element={<RedTeamLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Challenges initialView="red-roadmap" />} />
-              <Route path="roadmap" element={<Challenges initialView="red-roadmap" />} />
-              <Route path="challenges" element={<Challenges initialView="all" />} />
+              <Route path="dashboard" element={<RedTeamDashboard />} />
+              <Route path="roadmap" element={<RedTeamRoadmap />} />
+              <Route path="challenges" element={<Challenges initialView="red-roadmap" />} />
               <Route path="category/:category" element={<CategoryChallenges />} />
               <Route path="challenge/:id" element={<Challenge />} />
             </Route>
@@ -78,26 +85,17 @@ export default function App() {
             {/* Blue Team Section */}
             <Route path="blue-team" element={<BlueTeamLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Challenges initialView="blue-roadmap" />} />
-              <Route path="roadmap" element={<Challenges initialView="blue-roadmap" />} />
+              <Route path="dashboard" element={<BlueTeamDashboard />} />
+              <Route path="roadmap" element={<BlueTeamRoadmap />} />
               <Route path="forensics" element={<Challenges initialView="blue-roadmap" />} />
-              <Route path="alerts" element={<Challenges initialView="blue-roadmap" />} />
+              <Route path="challenge/:id" element={<Challenge />} />
             </Route>
 
-            {/* AI Labs Section */}
-            <Route path="ai-labs" element={<AILabLayout />}>
-              <Route index element={<Navigate to="prompt-injection" replace />} />
-              <Route path="prompt-injection" element={<AIPromptInjectionLab />} />
-              <Route path="log-analysis" element={<AILogAnalyzer />} />
-            </Route>
-
-            {/* Real Life Section */}
-            <Route path="real-life" element={<RealLifeLayout />}>
-              <Route index element={<Navigate to="corporate" replace />} />
-              <Route path="corporate" element={<RealLifeChallenges />} />
-              <Route path="infrastructure" element={<RealLifeChallenges />} />
-              <Route path="insider" element={<RealLifeChallenges />} />
-              <Route path="challenge/:id" element={<RealLifeChallenge />} />
+            {/* AI Injector Section */}
+            <Route path="ai-injector" element={<AIInjectorLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AIInjectorDashboard />} />
+              <Route path="lab" element={<AIInjectorLab />} />
             </Route>
 
             {/* PwnBox Section (Nested in RootLayout for Top Nav access, or separate?) 
@@ -107,11 +105,16 @@ export default function App() {
                 Yes, RootLayout renders <Outlet />, which renders PwnBoxLayout, which renders <Outlet /> (Terminal). 
                 Top Nav remains visible. This is good for "Platform" feel.
             */}
-            <Route path="pwnbox" element={<PwnBoxLayout />}>
-              <Route index element={<ChakraTerminal />} />
+            {/* Real Life Section */}
+            <Route path="real-life" element={<RealLifeLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<RealLifeDashboard />} />
+              <Route path="roadmap" element={<RealLifeRoadmap />} />
+              <Route path="scenarios" element={<RealLifeChallenges />} />
+              <Route path="challenge/:id" element={<RealLifeChallengeDetail />} />
             </Route>
 
-            {/* User & Admin */}
+            <Route path="soc-analyst" element={<SOCDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
           </Route>
@@ -120,6 +123,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </NavigationProvider>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }

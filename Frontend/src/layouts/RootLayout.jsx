@@ -8,7 +8,15 @@ import './Layout.css';
 const RootLayout = () => {
   const navigate = useNavigate();
   const { activeSection } = useNavigation();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [user, setUser] = React.useState(JSON.parse(localStorage.getItem('user') || '{}'));
+
+  React.useEffect(() => {
+    const handleStorageChange = () => {
+      setUser(JSON.parse(localStorage.getItem('user') || '{}'));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -53,16 +61,17 @@ const RootLayout = () => {
               <Shield size={16} /> Blue Team
             </NavLink>
 
-            <NavLink to={ROUTES.AI_LABS.BASE} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              <Activity size={16} /> AI Labs
+            <NavLink to={ROUTES.AI_INJECTOR.BASE} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <Zap size={16} /> AI Injector
             </NavLink>
+
 
             <NavLink to={ROUTES.REAL_LIFE.BASE} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Globe size={16} /> Real Life
             </NavLink>
 
-            <NavLink to={ROUTES.PWNBOX} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              <Terminal size={16} /> PwnBox
+            <NavLink to={ROUTES.SOC_ANALYST} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <Activity size={16} /> SOC Analyst
             </NavLink>
           </div>
         </div>

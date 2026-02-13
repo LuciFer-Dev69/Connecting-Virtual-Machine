@@ -20,19 +20,16 @@ export const ROUTES = {
         FORENSICS: '/blue-team/forensics',
         ALERTS: '/blue-team/alerts'
     },
-    AI_LABS: {
-        BASE: '/ai-labs',
-        PROMPT_INJECTION: '/ai-labs/prompt-injection',
-        LOG_ANALYSIS: '/ai-labs/log-analysis',
-        SIMULATOR: '/ai-labs/simulator'
+    AI_INJECTOR: {
+        BASE: '/ai-injector',
+        DASHBOARD: '/ai-injector/dashboard',
+        LAB: '/ai-injector/lab'
     },
     REAL_LIFE: {
         BASE: '/real-life',
-        CORPORATE: '/real-life/corporate',
-        INFRASTRUCTURE: '/real-life/infrastructure',
-        INSIDER: '/real-life/insider',
         CHALLENGE: '/real-life/challenge/:id'
     },
+    SOC_ANALYST: '/soc-analyst',
     PWNBOX: '/pwnbox',
     PROFILE: '/profile',
     ADMIN: '/admin'

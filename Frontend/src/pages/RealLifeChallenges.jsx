@@ -1,110 +1,116 @@
-import React, { useState, useEffect } from "react";
-import { API_BASE } from "../config";
-import {
-    Globe, Search, Target, ArrowRight, Loader2
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import PageTemplate from "../components/templates/PageTemplate";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Globe, Terminal, Activity, Server, Shield, ChevronRight } from 'lucide-react';
+import PageTemplate from '../components/templates/PageTemplate';
+import { API_BASE } from '../config';
 import './RealLifeChallenges.css';
 
-export default function RealLifeChallenges() {
+const RealLifeChallenges = () => {
+    const navigate = useNavigate();
     const [challenges, setChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
-
-    useEffect(() => {
-        fetchChallenges();
-    }, []);
+    const [error, setError] = useState(null);
 
     const fetchChallenges = async () => {
-        setLoading(true);
         try {
-            const res = await fetch(`${API_BASE}/real-life-challenges`);
-            const data = await res.json();
-            setChallenges(Array.isArray(data) ? data : []);
+            const response = await fetch(`${API_BASE}/real-life-challenges`);
+            if (!response.ok) throw new Error('Failed to fetch challenges');
+            const data = await response.json();
+            setChallenges(data);
         } catch (err) {
-            console.error(err);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
-    const filteredChallenges = challenges.filter(c =>
-        (c.title || "").toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        fetchChallenges();
+    }, []);
 
-    if (loading) {
-        return (
-            <div className="flex-center" style={{ height: "400px", color: "var(--accent-red)" }}>
-                <Loader2 className="animate-spin" size={48} />
-            </div>
-        );
-    }
+    const handleCardClick = (id) => {
+        navigate(`/real-life/challenge/${id}`);
+    };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-            <PageTemplate
-                title="Simulation Battlegrounds"
-                subtitle="High-fidelity corporate environments. Breach, pivot, and exfiltrate in real-time."
-                actions={
-                    <div className="search-input-wrapper">
-                        <Search className="search-icon" size={16} />
-                        <input
-                            className="search-input"
-                            placeholder="Locate target vector..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                }
-            >
-                <div className="battlegrounds-grid">
-                    <AnimatePresence>
-                        {filteredChallenges.map((c, i) => (
-                            <motion.div
-                                layout
-                                key={c.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.05 }}
-                            >
-                                <div className="battleground-card">
-                                    <div
-                                        className="card-banner"
-                                        style={{ backgroundImage: `url(${c.image_url || 'https://images.unsplash.com/photo-1558494949-ef010cbdcc4b?w=500'})` }}
-                                    >
-                                        <div className="banner-tag">
-                                            <Target size={12} /> TARGET: {c.category || 'EXT-PROD'}
-                                        </div>
-                                    </div>
-
-                                    <div className="card-body">
-                                        <div className="card-header-row">
-                                            <h3>{c.title}</h3>
-                                            <span className={`diff-tag ${c.difficulty.toLowerCase()}`}>
-                                                {c.difficulty}
-                                            </span>
-                                        </div>
-
-                                        <p className="card-desc">{c.description}</p>
-
-                                        <div className="card-footer-row">
-                                            <div className="bounty-info">
-                                                <span className="bounty-val">{c.points} XP</span>
-                                                <span className="bounty-label">BOUNTY_SYNC</span>
-                                            </div>
-
-                                            <a href={`#/real-life/challenge/${c.id}`} className="btn-engage">
-                                                <span>INITIATE_ENGAGEMENT</span> <ArrowRight size={16} />
-                                            </a>
-                                        </div>
-                                    </div>
+        <PageTemplate
+            title="Real Life Scenarios"
+            subtitle="Corporate environments and advanced simulation challenges."
+            icon={Globe}
+        >
+            <div className="challenges-grid">
+                {loading ? (
+                    <div className="col-span-full text-center py-20 text-gray-500">Loading simulations...</div>
+                ) : error ? (
+                    <div className="col-span-full text-center py-20 text-red-400">Error: {error}</div>
+                ) : challenges.length === 0 ? (
+                    null
+                ) : (
+                    challenges.map(challenge => (
+                        <div
+                            key={challenge.id}
+                            className="real-life-card group"
+                        >
+                            {/* Header: Badge & XP */}
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="rl-badge">
+                                    TIER_{challenge.difficulty}
                                 </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-            </PageTemplate>
-        </div>
+                                <div className="flex items-center gap-1 text-xs font-bold text-yellow-500">
+                                    <Activity size={14} />
+                                    <span>{challenge.points} XP</span>
+                                </div>
+                            </div>
+
+                            {/* Body: Icon & Content */}
+                            <div className="flex flex-col items-center text-center mb-4">
+                                <div className="rl-icon-container">
+                                    <Globe size={48} strokeWidth={1.5} />
+                                </div>
+                                <h3 className="rl-title">
+                                    {challenge.title}
+                                </h3>
+                                <p className="rl-desc">
+                                    {challenge.description}
+                                </p>
+                            </div>
+
+                            {/* Footer: Category & Action */}
+                            <div className="rl-footer">
+                                <span className="rl-category">
+                                    REAL LIFE - {challenge.category}
+                                </span>
+
+                                <button
+                                    onClick={() => handleCardClick(challenge.id)}
+                                    className="rl-btn"
+                                >
+                                    INITIATE_OPS
+                                    <ChevronRight size={14} />
+                                </button>
+                            </div>
+
+                            {/* Documentation Toggle */}
+                            {challenge.walkthrough && (
+                                <div className="mt-4 border-t border-white/5 pt-4">
+                                    <details className="group/details" onClick={(e) => e.stopPropagation()}>
+                                        <summary className="flex justify-center items-center gap-2 cursor-pointer text-[10px] font-mono text-gray-500 hover:text-yellow-500 transition-colors list-none uppercase tracking-widest">
+                                            <Shield size={10} />
+                                            View Classified Data
+                                        </summary>
+                                        <div className="mt-4 p-4 bg-black/50 rounded-lg border border-yellow-500/20 text-xs text-gray-400 font-mono whitespace-pre-wrap text-left">
+                                            {challenge.walkthrough}
+                                        </div>
+                                    </details>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
+
+            </div>
+        </PageTemplate>
     );
-}
+};
+
+export default RealLifeChallenges;

@@ -58,7 +58,7 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(challenges_bp, url_prefix='/api/challenges')
 app.register_blueprint(user_bp, url_prefix='/api/user')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
-app.register_blueprint(real_life_bp, url_prefix='/api/real-life')
+app.register_blueprint(real_life_bp, url_prefix='/api')
 app.register_blueprint(ai_bp, url_prefix='/api/ai')
 app.register_blueprint(vuln_bp, url_prefix='/api/vuln')
 
@@ -137,6 +137,6 @@ def handle_disconnect():
     ssh_manager.close_session(request.sid)
 
 if __name__ == '__main__':
-    # Initial reconciliation of PwnBoxes
-    pwnbox_manager.reconcile_pwnboxes()
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    # Initial reconciliation of PwnBoxes (Deactivated)
+    # pwnbox_manager.reconcile_pwnboxes()
+    socketio.run(app, host='0.0.0.0', port=5001, debug=True, use_reloader=False)

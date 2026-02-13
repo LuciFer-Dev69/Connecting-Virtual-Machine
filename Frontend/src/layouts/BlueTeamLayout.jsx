@@ -18,25 +18,20 @@ const BlueTeamLayout = () => {
             icon: <ShieldCheck size={18} />
         },
         {
-            label: 'Forensics',
+            label: 'Forensics Labs',
             path: 'forensics',
             icon: <Search size={18} />
         },
-        {
-            label: 'Alerts',
-            path: 'alerts',
-            icon: <Bell size={18} />
-        },
         { type: 'divider' },
         {
-            label: 'Reports',
-            path: '/blue-team/reports', // Future
-            icon: <FileText size={18} />
+            label: 'Leaderboard',
+            path: '/dashboard',
+            icon: <Activity size={18} />
         }
     ];
 
     return (
-        <div style={{ display: 'flex', height: '100%', width: '100%' }}>
+        <div className="theme-blue" style={{ display: 'flex', height: '100%', width: '100%' }}>
             <Sidebar items={sidebarItems} title="BLUE TEAM DEFENSE" variant="blue-team" />
             <div style={{
                 flex: 1,
