@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
 import { API_BASE } from "../config";
 import {
-    Search, Terminal, Database, Shield, Lock,
-    Globe, Activity, Zap, FileSearch
+    Globe, Search, Target, ArrowRight, Loader2
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import PageTemplate from "../components/templates/PageTemplate";
+import './RealLifeChallenges.css';
 
 export default function RealLifeChallenges() {
     const [challenges, setChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+        fetchChallenges();
+    }, []);
 
     const fetchChallenges = async () => {
         setLoading(true);
@@ -19,158 +23,88 @@ export default function RealLifeChallenges() {
             const data = await res.json();
             setChallenges(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.error("Error fetching real-life challenges:", err);
+            console.error(err);
         } finally {
             setLoading(false);
         }
-    };
-
-    useEffect(() => {
-        fetchChallenges();
-    }, []);
-
-    const getImageForChallenge = (title) => {
-        const t = title?.toLowerCase() || "";
-        if (t.includes("nmap") || t.includes("recon")) return "/images/challenges/nmap_recon.png";
-        if (t.includes("directory") || t.includes("discovery")) return "/images/challenges/dir_disco.png";
-        if (t.includes("version")) return "/images/challenges/version_detect.png";
-        if (t.includes("credentials") || t.includes("login")) return "/images/challenges/default_creds.png";
-        if (t.includes("robots")) return "/images/challenges/robots_leak.png";
-        if (t.includes("xss")) return "/images/challenges/xss_payload.png";
-        return "/images/challenges/nmap_recon.png"; // fallback
-    };
-
-    const getIconForCategory = (category) => {
-        const cat = category?.toLowerCase() || "";
-        if (cat.includes("recon")) return Search;
-        if (cat.includes("web")) return Globe;
-        if (cat.includes("auth")) return Lock;
-        if (cat.includes("sql")) return Database;
-        return Shield;
     };
 
     const filteredChallenges = challenges.filter(c =>
         (c.title || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading) return (
-        <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-            <Navbar />
-            <div style={{ display: "flex" }}>
-                <Sidebar active="real-life-challenges" />
-                <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", color: "var(--cyan)" }}>
-                    Loading real-world operations...
-                </div>
+    if (loading) {
+        return (
+            <div className="flex-center" style={{ height: "400px", color: "var(--accent-red)" }}>
+                <Loader2 className="animate-spin" size={48} />
             </div>
-        </div>
-    );
+        );
+    }
 
     return (
-        <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-            <Navbar />
-            <div style={{ display: "flex" }}>
-                <Sidebar active="real-life-challenges" />
-                <main style={{ flex: 1, padding: "40px" }}>
-                    <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-
-                        <div style={{ marginBottom: "40px", borderBottom: "1px solid var(--card-border)", paddingBottom: "20px" }}>
-                            <h1 style={{ fontSize: "32px", fontWeight: "800", color: "var(--text)", margin: 0 }}>Real-Life Web Challenges</h1>
-                            <p style={{ color: "var(--muted)", marginTop: "10px" }}>Compromise enterprise targets and practice real-world attack vectors.</p>
-                        </div>
-
-                        {/* Search Bar */}
-                        <div style={{ marginBottom: "30px" }}>
-                            <input
-                                type="text"
-                                placeholder="Search challenges..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{
-                                    width: "100%",
-                                    padding: "15px 20px",
-                                    background: "var(--card-bg)",
-                                    border: "1px solid var(--card-border)",
-                                    borderRadius: "12px",
-                                    color: "var(--text)",
-                                    fontSize: "16px",
-                                    outline: "none"
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "30px" }}>
-                            {filteredChallenges.map((challenge) => {
-                                const Icon = getIconForCategory(challenge.category);
-                                return (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+            <PageTemplate
+                title="Simulation Battlegrounds"
+                subtitle="High-fidelity corporate environments. Breach, pivot, and exfiltrate in real-time."
+                actions={
+                    <div className="search-input-wrapper">
+                        <Search className="search-icon" size={16} />
+                        <input
+                            className="search-input"
+                            placeholder="Locate target vector..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                }
+            >
+                <div className="battlegrounds-grid">
+                    <AnimatePresence>
+                        {filteredChallenges.map((c, i) => (
+                            <motion.div
+                                layout
+                                key={c.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                            >
+                                <div className="battleground-card">
                                     <div
-                                        key={challenge.id}
-                                        onClick={() => window.location.hash = `#/real-life-challenges/${challenge.id}`}
-                                        style={{
-                                            background: "var(--card-bg)",
-                                            border: "1px solid var(--card-border)",
-                                            borderRadius: "16px",
-                                            overflow: "hidden",
-                                            cursor: "pointer",
-                                            transition: "all 0.3s ease"
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.transform = "translateY(-5px)";
-                                            e.currentTarget.style.borderColor = "var(--red)";
-                                            e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,0,0,0.5)";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.transform = "translateY(0)";
-                                            e.currentTarget.style.borderColor = "var(--card-border)";
-                                            e.currentTarget.style.boxShadow = "none";
-                                        }}
+                                        className="card-banner"
+                                        style={{ backgroundImage: `url(${c.image_url || 'https://images.unsplash.com/photo-1558494949-ef010cbdcc4b?w=500'})` }}
                                     >
-                                        <div style={{ height: "180px", overflow: "hidden" }}>
-                                            <img
-                                                src={getImageForChallenge(challenge.title)}
-                                                alt={challenge.title}
-                                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                            />
-                                        </div>
-                                        <div style={{ padding: "24px" }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "15px" }}>
-                                                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700" }}>{challenge.title}</h3>
-                                                <Icon size={18} color="var(--red)" />
-                                            </div>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                                <span style={{
-                                                    fontSize: "12px",
-                                                    fontWeight: "800",
-                                                    color: challenge.difficulty === "Easy" ? "var(--green)" : "orange",
-                                                    textTransform: "uppercase"
-                                                }}>
-                                                    {challenge.difficulty}
-                                                </span>
-                                                <span style={{ fontSize: "14px", fontWeight: "700", color: "var(--cyan)" }}>
-                                                    {challenge.points} XP
-                                                </span>
-                                            </div>
-                                            <button style={{
-                                                width: "100%",
-                                                marginTop: "20px",
-                                                padding: "10px",
-                                                background: "rgba(255, 0, 68, 0.1)",
-                                                border: "1px solid var(--red)",
-                                                color: "var(--red)",
-                                                borderRadius: "8px",
-                                                fontWeight: "700",
-                                                cursor: "pointer"
-                                            }}>
-                                                START OPERATION
-                                            </button>
+                                        <div className="banner-tag">
+                                            <Target size={12} /> TARGET: {c.category || 'EXT-PROD'}
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </main>
-            </div>
+
+                                    <div className="card-body">
+                                        <div className="card-header-row">
+                                            <h3>{c.title}</h3>
+                                            <span className={`diff-tag ${c.difficulty.toLowerCase()}`}>
+                                                {c.difficulty}
+                                            </span>
+                                        </div>
+
+                                        <p className="card-desc">{c.description}</p>
+
+                                        <div className="card-footer-row">
+                                            <div className="bounty-info">
+                                                <span className="bounty-val">{c.points} XP</span>
+                                                <span className="bounty-label">BOUNTY_SYNC</span>
+                                            </div>
+
+                                            <a href={`#/real-life/challenge/${c.id}`} className="btn-engage">
+                                                <span>INITIATE_ENGAGEMENT</span> <ArrowRight size={16} />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+            </PageTemplate>
         </div>
     );
 }
-

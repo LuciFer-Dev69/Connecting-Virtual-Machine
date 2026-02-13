@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import { API_BASE } from '../config';
-import { Search, ShieldAlert, Activity, FileText, Download, ChevronDown, AlertTriangle, CheckCircle, Shield } from 'lucide-react';
+import { Search, ShieldAlert, Activity, FileText, Download, ChevronDown, AlertTriangle, CheckCircle, Shield, RefreshCcw, LayoutDashboard } from 'lucide-react';
+import PageTemplate from '../components/templates/PageTemplate';
+import './AILogAnalyzer.css';
 
 const SAMPLE_LOGS = {
     "ssh_brute": `Oct 10 12:00:01 server sshd[123]: Failed password for root from 192.168.1.50 port 22 ssh2
@@ -24,7 +24,7 @@ export default function AILogAnalyzer() {
     const [sampleMenuOpen, setSampleMenuOpen] = useState(false);
 
     const handleAnalyze = async () => {
-        if (!logs) return;
+        if (!logs.trim()) return;
         setLoading(true);
         setAnalysis(null);
         try {
@@ -49,202 +49,126 @@ export default function AILogAnalyzer() {
     };
 
     const getRiskColor = (score) => {
-        if (score < 30) return "var(--green)";
-        if (score < 70) return "var(--yellow)";
-        return "var(--red)";
+        if (score < 30) return "var(--color-success)";
+        if (score < 70) return "var(--color-warning)";
+        return "var(--color-error)";
     };
 
     return (
-        <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--text)" }}>
-            <Navbar />
-            <div style={{ display: "flex" }}>
-                <Sidebar active="ai-log-analyzer" />
-                <main style={{ flex: 1, padding: "40px" }}>
-                    <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-                        <div style={{ marginBottom: "30px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                                <div style={{ background: "var(--red)20", padding: "12px", borderRadius: "12px", color: "var(--red)" }}>
-                                    <ShieldAlert size={32} />
-                                </div>
-                                <div>
-                                    <h1 style={{ fontSize: "28px", fontWeight: "800", margin: 0 }}>SOC Log Forensic Dashboard</h1>
-                                    <p style={{ color: "var(--muted)", marginTop: "5px", fontSize: "14px" }}>
-                                        AI-Powered Sentinel for Threat Hunting & Incident Response
-                                    </p>
-                                </div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+            <PageTemplate
+                title="Sentinel SOC Dashboard"
+                subtitle="AI-Powered forensics engine for correlation and threat hunting."
+                actions={
+                    <div style={{ position: "relative" }}>
+                        <button
+                            onClick={() => setSampleMenuOpen(!sampleMenuOpen)}
+                            className="btn-outline"
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}
+                        >
+                            <FileText size={16} /> Load Battle Record <ChevronDown size={14} />
+                        </button>
+                        {sampleMenuOpen && (
+                            <div style={{
+                                position: "absolute", top: "100%", right: 0, marginTop: "8px",
+                                background: "var(--bg-panel)", border: "1px solid var(--border-primary)",
+                                borderRadius: "8px", width: "220px", zIndex: 100, boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                                padding: '4px'
+                            }}>
+                                <div onClick={() => loadSample("ssh_brute")} className="sidebar-link" style={{ fontSize: '13px' }}>🔓 SSH Brute Force</div>
+                                <div onClick={() => loadSample("sql_injection")} className="sidebar-link" style={{ fontSize: '13px' }}>💉 SQL Injection</div>
+                                <div onClick={() => loadSample("xss_attempt")} className="sidebar-link" style={{ fontSize: '13px' }}>🌐 XSS Injection</div>
                             </div>
-
-                            <div style={{ position: "relative" }}>
-                                <button
-                                    onClick={() => setSampleMenuOpen(!sampleMenuOpen)}
-                                    style={{
-                                        background: "var(--card-bg)", color: "var(--cyan)", border: "1px solid var(--cyan)",
-                                        padding: "10px 20px", borderRadius: "8px", cursor: "pointer", fontWeight: "600",
-                                        display: "flex", alignItems: "center", gap: "8px"
-                                    }}
-                                >
-                                    <FileText size={16} /> Load Attack Sample <ChevronDown size={14} />
-                                </button>
-                                {sampleMenuOpen && (
-                                    <div style={{
-                                        position: "absolute", top: "100%", right: 0, marginTop: "5px",
-                                        background: "var(--card-bg)", border: "1px solid var(--card-border)",
-                                        borderRadius: "8px", width: "200px", zIndex: 100, boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
-                                    }}>
-                                        <div onClick={() => loadSample("ssh_brute")} style={{ padding: "10px", cursor: "pointer", fontSize: "13px", borderBottom: "1px solid var(--card-border)", color: "var(--text)" }}>🔓 SSH Brute Force</div>
-                                        <div onClick={() => loadSample("sql_injection")} style={{ padding: "10px", cursor: "pointer", fontSize: "13px", borderBottom: "1px solid var(--card-border)", color: "var(--text)" }}>💉 SQL Injection (Union)</div>
-                                        <div onClick={() => loadSample("xss_attempt")} style={{ padding: "10px", cursor: "pointer", fontSize: "13px", color: "var(--text)" }}>🌐 XSS Script Injection</div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: "30px" }}>
-                            {/* LEFT: INPUT */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                                <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "16px", padding: "20px", flex: 1, display: "flex", flexDirection: "column" }}>
-                                    <h3 style={{ marginBottom: "15px", fontSize: "16px", color: "var(--muted)", display: "flex", alignItems: "center", gap: "10px" }}>
-                                        <Activity size={18} /> Raw Log Stream
-                                    </h3>
-                                    <textarea
-                                        value={logs}
-                                        onChange={(e) => setLogs(e.target.value)}
-                                        placeholder="Paste server logs or load a sample..."
-                                        style={{
-                                            flex: 1,
-                                            width: "100%",
-                                            minHeight: "400px",
-                                            background: "#0d1117",
-                                            border: "1px solid var(--card-border)",
-                                            borderRadius: "12px",
-                                            padding: "15px",
-                                            color: "#e6edf3",
-                                            fontFamily: "monospace",
-                                            fontSize: "12px",
-                                            outline: "none",
-                                            resize: "none",
-                                            lineHeight: "1.5"
-                                        }}
-                                    />
-                                    <button
-                                        onClick={handleAnalyze}
-                                        disabled={loading || !logs}
-                                        style={{
-                                            width: "100%",
-                                            marginTop: "20px",
-                                            padding: "15px",
-                                            background: "var(--red)",
-                                            color: "#fff",
-                                            border: "none",
-                                            borderRadius: "12px",
-                                            fontWeight: "700",
-                                            cursor: loading ? "wait" : "pointer",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            gap: "10px",
-                                            opacity: loading || !logs ? 0.6 : 1
-                                        }}
-                                    >
-                                        <Shield size={18} /> {loading ? "Analyzing Threat Vectors..." : "Scan Logs"}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* RIGHT: DASHBOARD */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                                {!analysis && !loading && (
-                                    <div style={{
-                                        height: "100%", border: "2px dashed var(--card-border)", borderRadius: "16px",
-                                        display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", flexDirection: "column", gap: "10px"
-                                    }}>
-                                        <Activity size={48} style={{ opacity: 0.2 }} />
-                                        <p>Ready for Analysis</p>
-                                    </div>
-                                )}
-
-                                {loading && (
-                                    <div style={{
-                                        height: "100%", borderRadius: "16px", background: "var(--card-bg)",
-                                        display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "20px"
-                                    }}>
-                                        <div className="spinner"></div>
-                                        <p style={{ color: "var(--cyan)", fontWeight: "600" }}>AI Sentinel is correlating events...</p>
-                                    </div>
-                                )}
-
-                                {analysis && (
-                                    <>
-                                        {/* TOP STATS */}
-                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-                                            <div style={{ background: "var(--card-bg)", padding: "20px", borderRadius: "16px", border: "1px solid var(--card-border)", textAlign: "center" }}>
-                                                <div style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "5px" }}>THREAT SCORE</div>
-                                                <div style={{ fontSize: "42px", fontWeight: "900", color: getRiskColor(analysis.threat_score) }}>
-                                                    {analysis.threat_score}/100
-                                                </div>
-                                                <div style={{ fontSize: "12px", fontWeight: "700", color: getRiskColor(analysis.threat_score), marginTop: "5px" }}>
-                                                    {analysis.classification.toUpperCase()}
-                                                </div>
-                                            </div>
-                                            <div style={{ background: "var(--card-bg)", padding: "20px", borderRadius: "16px", border: "1px solid var(--card-border)" }}>
-                                                <div style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "10px" }}>DETECTED VECTORS</div>
-                                                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                                                    {analysis.badges?.map((badge, i) => (
-                                                        <span key={i} style={{
-                                                            background: "rgba(255,255,255,0.1)", fontSize: "11px", padding: "4px 8px", borderRadius: "4px",
-                                                            border: "1px solid rgba(255,255,255,0.2)", color: "#fff"
-                                                        }}>
-                                                            {badge}
-                                                        </span>
-                                                    ))}
-                                                    <span style={{
-                                                        background: "var(--red)20", fontSize: "11px", padding: "4px 8px", borderRadius: "4px",
-                                                        border: "1px solid var(--red)40", color: "var(--red)", fontWeight: "700"
-                                                    }}>
-                                                        {analysis.attack_type}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* TIMELINE */}
-                                        <div style={{ background: "var(--card-bg)", padding: "20px", borderRadius: "16px", border: "1px solid var(--card-border)", flex: 1, overflowY: "auto", maxHeight: "300px" }}>
-                                            <div style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "15px", fontWeight: "700" }}>⚠️ INCIDENT TIMELINE</div>
-                                            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                                                {analysis.timeline?.map((event, i) => (
-                                                    <div key={i} style={{ display: "flex", gap: "15px", fontSize: "13px" }}>
-                                                        <div style={{ fontFamily: "monospace", color: "var(--muted)", minWidth: "70px" }}>{event.time}</div>
-                                                        <div style={{ flex: 1, color: "var(--text)" }}>{event.event}</div>
-                                                        <div style={{
-                                                            fontSize: "10px", fontWeight: "700", padding: "2px 6px", borderRadius: "4px", height: "fit-content",
-                                                            background: event.risk === "high" ? "var(--red)" : event.risk === "medium" ? "var(--yellow)" : "var(--green)",
-                                                            color: "#000"
-                                                        }}>
-                                                            {event.risk.toUpperCase()}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* DEFENSE */}
-                                        <div style={{ background: "rgba(81, 207, 102, 0.1)", padding: "20px", borderRadius: "16px", border: "1px solid var(--green)" }}>
-                                            <div style={{ color: "var(--green)", fontWeight: "700", fontSize: "14px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                                                <CheckCircle size={16} /> Recommended Actions
-                                            </div>
-                                            <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "13px", color: "var(--text)" }}>
-                                                {analysis.defensive_actions?.map((action, i) => (
-                                                    <li key={i} style={{ marginBottom: "5px" }}>{action}</li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </div>
+                        )}
                     </div>
-                </main>
-            </div>
+                }
+            >
+                <div className="soc-dashboard-container">
+                    <div className="log-input-section">
+                        <div className="widget-title"><Activity size={18} className="text-primary" /> Row Telemetry Stream</div>
+                        <textarea
+                            className="log-textarea"
+                            value={logs}
+                            onChange={(e) => setLogs(e.target.value)}
+                            placeholder="Paste operational logs here for cross-correlation analysis..."
+                        />
+                        <button
+                            className="btn-submit"
+                            style={{ marginTop: '20px', padding: '14px' }}
+                            onClick={handleAnalyze}
+                            disabled={loading || !logs.trim()}
+                        >
+                            {loading ? <RefreshCcw size={18} className="animate-spin" /> : <Shield size={18} />}
+                            {loading ? "CORRELATING VECTORS..." : "INITIATE SCAN"}
+                        </button>
+                    </div>
+
+                    <div className="analysis-results-section">
+                        {!analysis && !loading && (
+                            <div className="flex-center" style={{ flex: 1, border: '1px dashed var(--border-primary)', borderRadius: '16px', color: 'var(--text-muted)', flexDirection: 'column' }}>
+                                <Shield size={48} style={{ opacity: 0.1, marginBottom: '15px' }} />
+                                <span>Awaiting operational data for ingest.</span>
+                            </div>
+                        )}
+
+                        {loading && (
+                            <div className="flex-center" style={{ flex: 1, color: 'var(--accent-blue)', flexDirection: 'column' }}>
+                                <RefreshCcw size={48} className="animate-spin" style={{ marginBottom: '15px' }} />
+                                <span>Sentinel is reconstructing the kill chain...</span>
+                            </div>
+                        )}
+
+                        {analysis && (
+                            <>
+                                <div className="analysis-summary-grid">
+                                    <div className="risk-level-card">
+                                        <div className="risk-label">Threat Severity</div>
+                                        <div className="risk-score" style={{ color: getRiskColor(analysis.threat_score) }}>
+                                            {analysis.threat_score}
+                                        </div>
+                                        <div style={{ fontSize: '12px', fontWeight: '800', color: getRiskColor(analysis.threat_score) }}>
+                                            {analysis.classification.toUpperCase()}
+                                        </div>
+                                    </div>
+                                    <div className="risk-level-card" style={{ textAlign: 'left' }}>
+                                        <div className="risk-label" style={{ marginBottom: '12px' }}>Detected Artifacts</div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {analysis.badges?.map((badge, i) => (
+                                                <span key={i} className="tool-tag">{badge}</span>
+                                            ))}
+                                            <span style={{ fontSize: '10px', fontWeight: '900', color: 'var(--color-error)', background: 'rgba(239, 68, 68, 0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+                                                {analysis.attack_type.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="incident-timeline">
+                                    <div className="widget-title" style={{ fontSize: '12px' }}><AlertTriangle size={14} /> INCIDENT TIMELINE</div>
+                                    {analysis.timeline?.map((event, i) => (
+                                        <div key={i} className="timeline-event">
+                                            <span className="event-time">{event.time}</span>
+                                            <span className="event-desc">{event.event}</span>
+                                            <span className={`event-risk-badge ${event.risk.toLowerCase()}`}>
+                                                {event.risk.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="remediation-card">
+                                    <h4><CheckCircle size={18} /> STRATEGIC COUNTERMEASURES</h4>
+                                    <ul className="remediation-list">
+                                        {analysis.defensive_actions?.map((action, i) => (
+                                            <li key={i}>{action}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </PageTemplate>
         </div>
     );
 }

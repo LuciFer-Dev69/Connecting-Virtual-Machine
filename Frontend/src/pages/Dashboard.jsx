@@ -1,304 +1,232 @@
-import React, { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import React, { useEffect, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Zap, Shield, Cpu, Target, Award, Terminal, Activity, TrendingUp, User, Layout, ChevronRight, BarChart3, Clock, Trophy, MapPin, Calendar, Lock
+} from 'lucide-react';
 import { API_BASE } from "../config";
+import { ROUTES } from "../config/routes.config";
+import PageTemplate from "../components/templates/PageTemplate";
+import './Dashboard.css';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const [stats, setStats] = useState({ beginner: 0, intermediate: 0, advanced: 0, total_challenges: 0 });
   const [leaderboard, setLeaderboard] = useState([]);
-  const [challenges, setChallenges] = useState({ beginner: 0, intermediate: 0, advanced: 0 });
-  const [achievements, setAchievements] = useState([]);
+  const [activeLabs, setActiveLabs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch leaderboard
-    fetch(`${API_BASE}/leaderboard`)
-      .then(r => r.json())
-      .then(data => setLeaderboard(data.slice(0, 5)))
-      .catch(err => console.error(err));
+    const userId = user.user_id || user.id;
+    if (!userId) return;
 
-    // Fetch user's challenge stats
-    fetch(`${API_BASE}/user/${user.user_id}/stats`)
-      .then(r => r.json())
-      .then(data => {
-        setChallenges({
-          beginner: data.beginner || 0,
-          intermediate: data.intermediate || 0,
-          advanced: data.advanced || 0
-        });
-      })
-      .catch(err => console.error(err));
+    setLoading(true);
+    const fetchData = async () => {
+      try {
+        // Fetch Leaderboard
+        const lbRes = await fetch(`${API_BASE}/user/leaderboard`);
+        if (lbRes.ok) {
+          const data = await lbRes.json();
+          setLeaderboard(Array.isArray(data) ? data.slice(0, 5) : []);
+        }
 
-    // Calculate achievements based on progress
-    calculateAchievements();
-  }, [user.user_id]);
+        // Fetch Stats
+        const statsRes = await fetch(`${API_BASE}/user/${userId}/stats`);
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          setStats(data);
+        }
 
-  const calculateAchievements = () => {
-    const progress = user?.progress || 0;
-    const userAchievements = [];
-
-    // Achievement definitions
-    const achievementList = [
-      {
-        id: 1,
-        name: "First Steps",
-        description: "Complete your first challenge",
-        icon: "🎯",
-        unlocked: progress >= 5,
-        progress: Math.min(progress, 5),
-        required: 5
-      },
-      {
-        id: 2,
-        name: "Getting Started",
-        description: "Reach 10% progress",
-        icon: "🌟",
-        unlocked: progress >= 10,
-        progress: Math.min(progress, 10),
-        required: 10
-      },
-      {
-        id: 3,
-        name: "Quick Learner",
-        description: "Reach 25% progress",
-        icon: "⚡",
-        unlocked: progress >= 25,
-        progress: Math.min(progress, 25),
-        required: 25
-      },
-      {
-        id: 4,
-        name: "Dedicated Student",
-        description: "Reach 50% progress",
-        icon: "🏅",
-        unlocked: progress >= 50,
-        progress: Math.min(progress, 50),
-        required: 50
-      },
-      {
-        id: 5,
-        name: "Security Expert",
-        description: "Reach 75% progress",
-        icon: "🔒",
-        unlocked: progress >= 75,
-        progress: Math.min(progress, 75),
-        required: 75
-      },
-      {
-        id: 6,
-        name: "Master Hacker",
-        description: "Complete all challenges (100%)",
-        icon: "🏆",
-        unlocked: progress >= 100,
-        progress: Math.min(progress, 100),
-        required: 100
+        // Fetch Recent Challenges
+        const challengesRes = await fetch(`${API_BASE}/challenges`);
+        if (challengesRes.ok) {
+          const data = await challengesRes.json();
+          setActiveLabs(data.slice(0, 4));
+        }
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    setAchievements(achievementList);
-  };
+    fetchData();
+  }, [user.user_id, user.id]);
 
   const progress = user?.progress || 0;
-  const level = Math.floor(progress / 10) + 1;
+  const level = Math.floor(progress / 20) + 1;
+  const rankName = level > 5 ? "Elite Operative" : `Operative ${"I".repeat(level)}`;
+  const xpToNextLevel = level * 20;
+  const xpProgressPercent = (progress % 20) / 20 * 100;
+
+  // Mock Heatmap Data
+  const renderHeatmap = () => {
+    const bubbles = [];
+    for (let i = 0; i < 60; i++) {
+      const lvl = Math.floor(Math.random() * 5); // 0-4
+      bubbles.push(<div key={i} className={`heat-box lvl-${lvl}`}></div>);
+    }
+    return bubbles;
+  };
+
+  const skills = [
+    { name: "Web Exploitation", percent: 75 },
+    { name: "Network Security", percent: 40 },
+    { name: "Privilege Escalation", percent: 60 },
+    { name: "Defensive Analysis", percent: 30 },
+  ];
+
+  const achievements = [
+    { id: 1, icon: <Zap size={20} />, title: "First Blood", unlocked: true },
+    { id: 2, icon: <Terminal size={20} />, title: "Shell Master", unlocked: true },
+    { id: 3, icon: <Shield size={20} />, title: "Defender", unlocked: false },
+    { id: 4, icon: <Cpu size={20} />, title: "AI Breaker", unlocked: false },
+    { id: 5, icon: <Target size={20} />, title: "Sniper", unlocked: false },
+  ];
 
   return (
-    <div>
-      <Navbar />
-      <div style={{ display: "flex" }}>
-        <Sidebar active="dashboard" />
-        <main style={{ flex: 1, padding: "40px", background: "var(--bg)", minHeight: "100vh", color: "var(--text)" }}>
-          <h1 style={{ color: "var(--cyan)", fontSize: "36px", marginBottom: "30px" }}>Dashboard</h1>
+    <div className="dashboard-container">
+      {/* 1. Header Card (Professional Profile Style) */}
+      <div className="dashboard-header-card">
+        <div className="dashboard-cover"></div>
+        <div className="dashboard-header-content">
+          <div className="avatar-wrapper">
+            <div className="avatar-placeholder"><User size={48} /></div>
+            <div className="status-indicator"></div>
+          </div>
 
-          <div style={{ display: "flex", gap: "30px" }}>
-            {/* Left Section */}
-            <div style={{ flex: 2 }}>
-              {/* User Info Card */}
-              <div style={{ background: "var(--card-bg)", padding: "30px", borderRadius: "10px", marginBottom: "30px", border: "1px solid var(--card-border)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
-                  <div style={{
-                    width: "60px",
-                    height: "60px",
-                    background: "#333",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "24px"
-                  }}>
-                    {user?.profilePic ? (
-                      <img src={user.profilePic} alt="Profile" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                    ) : (
-                      "👤"
-                    )}
-                  </div>
-                  <div>
-                    <h2 style={{ color: "var(--text)", margin: 0, fontSize: "28px" }}>{user?.name || "Guest"}</h2>
-                    <p style={{ margin: "5px 0 0 0", color: "var(--muted)" }}>Lv. {level}</p>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div style={{ marginTop: "20px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                    <span style={{ color: "var(--muted)" }}>Progress</span>
-                    <span style={{ color: "var(--text)", fontWeight: "bold" }}>{progress}%</span>
-                  </div>
-                  <div style={{
-                    width: "100%",
-                    height: "12px",
-                    background: "var(--card-border)",
-                    borderRadius: "10px",
-                    overflow: "hidden"
-                  }}>
-                    <div style={{
-                      width: `${progress}%`,
-                      height: "100%",
-                      background: "linear-gradient(90deg, #00d4ff, #00ff88)",
-                      transition: "width 0.3s ease"
-                    }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Challenges Section */}
-              <div style={{ background: "var(--card-bg)", padding: "30px", borderRadius: "10px", marginBottom: "30px", border: "1px solid var(--card-border)" }}>
-                <h3 style={{ color: "var(--text)", marginBottom: "20px", fontSize: "22px" }}>Challenges</h3>
-                <div style={{ display: "flex", gap: "20px" }}>
-                  <div style={{ flex: 1, textAlign: "center" }}>
-                    <p style={{ color: "var(--muted)", margin: "0 0 5px 0" }}>Beginner</p>
-                    <p style={{ color: "var(--text)", fontSize: "32px", fontWeight: "bold", margin: 0 }}>{challenges.beginner}</p>
-                  </div>
-                  <div style={{ flex: 1, textAlign: "center" }}>
-                    <p style={{ color: "var(--muted)", margin: "0 0 5px 0" }}>Intermediate</p>
-                    <p style={{ color: "var(--text)", fontSize: "32px", fontWeight: "bold", margin: 0 }}>{challenges.intermediate}</p>
-                  </div>
-                  <div style={{ flex: 1, textAlign: "center" }}>
-                    <p style={{ color: "var(--muted)", margin: "0 0 5px 0" }}>Advanced</p>
-                    <p style={{ color: "var(--text)", fontSize: "32px", fontWeight: "bold", margin: 0 }}>{challenges.advanced}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: "flex", gap: "15px" }}>
-                <a href="#/challenges" className="btn btn-green" style={{ flex: 1, textAlign: "center", padding: "15px", textDecoration: "none" }}>
-                  Start Challenge
-                </a>
-                <a href="#/hints" className="btn btn-cyan" style={{ flex: 1, textAlign: "center", padding: "15px", textDecoration: "none" }}>
-                  View Hints
-                </a>
-                <a href="#/tutorials" className="btn btn-ghost" style={{ flex: 1, textAlign: "center", padding: "15px", textDecoration: "none" }}>
-                  Tutorials
-                </a>
-              </div>
-            </div>
-
-            {/* Right Section - Leaderboard & Achievements */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "30px" }}>
-              {/* Leaderboard */}
-              <div style={{ background: "var(--card-bg)", padding: "25px", borderRadius: "10px", border: "1px solid var(--card-border)" }}>
-                <h3 style={{ color: "var(--text)", marginBottom: "20px", fontSize: "22px" }}>Leaderboard</h3>
-                {leaderboard.length === 0 ? (
-                  <p style={{ color: "var(--muted)" }}>No users yet.</p>
-                ) : (
-                  <div>
-                    {leaderboard.map((u, i) => (
-                      <div key={i} style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "12px 0",
-                        borderBottom: i < leaderboard.length - 1 ? "1px solid var(--card-border)" : "none"
-                      }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                          <span style={{ color: i < 3 ? "#00d4ff" : "var(--muted)", fontWeight: "bold", fontSize: "18px" }}>
-                            {i + 1}.
-                          </span>
-                          <span style={{ color: "var(--text)" }}>{u.name}</span>
-                        </div>
-                        <span style={{ color: "#00ff88", fontWeight: "bold" }}>{u.progress}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Achievements */}
-              <div style={{ background: "var(--card-bg)", padding: "25px", borderRadius: "10px", border: "1px solid var(--card-border)" }}>
-                <h3 style={{ color: "var(--text)", marginBottom: "20px", fontSize: "22px" }}>Achievements</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "15px" }}>
-                  {achievements.map((achievement) => (
-                    <div
-                      key={achievement.id}
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        paddingTop: "100%",
-                        background: achievement.unlocked ? "var(--card-border)" : "var(--input-bg)",
-                        borderRadius: "10px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        border: achievement.unlocked ? "2px solid #00d4ff" : "2px solid #444",
-                        transition: "all 0.3s ease",
-                        overflow: "hidden"
-                      }}
-                      title={`${achievement.name}: ${achievement.description} (${achievement.progress}/${achievement.required}%)`}
-                    >
-                      <div style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}>
-                        <div style={{
-                          fontSize: "32px",
-                          opacity: achievement.unlocked ? 1 : 0.3,
-                          filter: achievement.unlocked ? "none" : "grayscale(100%)"
-                        }}>
-                          {achievement.icon}
-                        </div>
-                        {!achievement.unlocked && (
-                          <div style={{
-                            position: "absolute",
-                            bottom: "5px",
-                            fontSize: "10px",
-                            color: "#666",
-                            fontWeight: "bold"
-                          }}>
-                            {achievement.progress}/{achievement.required}%
-                          </div>
-                        )}
-                        {achievement.unlocked && (
-                          <div style={{
-                            position: "absolute",
-                            top: "5px",
-                            right: "5px",
-                            fontSize: "12px"
-                          }}>
-                            ✅
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Achievement Progress Info */}
-                <div style={{ marginTop: "20px", padding: "15px", background: "var(--input-bg)", borderRadius: "8px" }}>
-                  <p style={{ color: "#888", fontSize: "12px", margin: 0 }}>
-                    <strong style={{ color: "#00d4ff" }}>{achievements.filter(a => a.unlocked).length}</strong> of <strong>{achievements.length}</strong> achievements unlocked
-                  </p>
-                </div>
-              </div>
+          <div className="user-identity">
+            <h2>{user.name || "Unknown Operative"}</h2>
+            <div className="user-identity-meta">
+              <span className="meta-item"><Shield size={14} className="meta-icon" /> {rankName}</span>
+              <span className="meta-item"><MapPin size={14} className="meta-icon" /> Global Node #42</span>
+              <span className="meta-item"><Activity size={14} className="meta-icon" /> System Online</span>
             </div>
           </div>
-        </main>
+
+          <div className="header-stats">
+            <div className="stat-box">
+              <span className="stat-value">{stats.total_challenges || 0}</span>
+              <span className="stat-label">Labs</span>
+            </div>
+            <div className="stat-box">
+              <span className="stat-value">{progress}</span>
+              <span className="stat-label">XP</span>
+            </div>
+            <div className="stat-box">
+              <span className="stat-value">{level}</span>
+              <span className="stat-label">Level</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Main Grid */}
+      <div className="dashboard-main-grid">
+        {/* Left Column */}
+        <div className="dashboard-col-left">
+
+          {/* Progress Card */}
+          <div className="panel-card xp-card">
+            <div className="card-header">
+              <h3><TrendingUp size={18} /> Operative Progression</h3>
+              <span className="xp-badge">{progress} / {xpToNextLevel} XP</span>
+            </div>
+            <div className="progress-bar-container">
+              <div className="progress-bar-fill" style={{ width: `${xpProgressPercent || 5}%` }}></div>
+            </div>
+            <div className="xp-details">
+              <span>Level {level}</span>
+              <span>Next: Level {level + 1}</span>
+            </div>
+          </div>
+
+          {/* Active Labs */}
+          <div className="panel-card">
+            <div className="card-header">
+              <h3><Terminal size={18} /> Active Missions</h3>
+              <Link to={ROUTES.MODULES} className="link-action">View All <ChevronRight size={14} /></Link>
+            </div>
+            <div className="labs-list">
+              {activeLabs.map((lab) => (
+                <div key={lab.id} className="lab-row" onClick={() => navigate(`${ROUTES.CHALLENGE_BASE}/${lab.id}`)}>
+                  <div className="lab-icon"><Target size={18} /></div>
+                  <div className="lab-info">
+                    <span className="lab-name">{lab.title}</span>
+                    <span className="lab-diff">{lab.difficulty || 'Medium'}</span>
+                  </div>
+                  <div className="lab-status">In Progress</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Heatmap Card */}
+          <div className="panel-card">
+            <div className="card-header">
+              <h3><Activity size={18} /> Operational Activity</h3>
+            </div>
+            <div className="activity-heatmap" style={{ marginTop: '16px' }}>
+              {renderHeatmap()}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Column */}
+        <div className="dashboard-col-right">
+
+          {/* Skills */}
+          <div className="panel-card">
+            <div className="card-header">
+              <h3><Cpu size={18} /> Skill Matrix</h3>
+            </div>
+            <div className="skills-list">
+              {skills.map((skill, idx) => (
+                <div key={idx} className="skill-item">
+                  <div className="skill-header">
+                    <span className="skill-name">{skill.name}</span>
+                    <span className="skill-percent">{skill.percent}%</span>
+                  </div>
+                  <div className="skill-bar-bg">
+                    <div className="skill-bar-fill" style={{ width: `${skill.percent}%` }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Achievements */}
+          <div className="panel-card">
+            <div className="card-header">
+              <h3><Trophy size={18} /> Badges</h3>
+            </div>
+            <div className="achievements-grid">
+              {achievements.map((a) => (
+                <div key={a.id} className={`achievement-item ${a.unlocked ? 'unlocked' : ''}`}>
+                  <div className="achievement-icon" title={a.title}>{a.icon}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Leaderboard Snippet */}
+          <div className="panel-card">
+            <div className="card-header">
+              <h3><Award size={18} /> Top Agents</h3>
+            </div>
+            <div className="leaderboard-list">
+              {leaderboard.map((u, i) => (
+                <div key={i} className="leaderboard-item">
+                  <span className="lb-rank">#{i + 1}</span>
+                  <span className="lb-name">{u.username || u.name}</span>
+                  <span className="lb-xp">{u.progress} XP</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );

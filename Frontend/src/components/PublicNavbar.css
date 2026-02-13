@@ -1,0 +1,95 @@
+.public-navbar {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background-color: var(--bg-app);
+    border-bottom: 1px solid var(--border-primary);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-left-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    min-width: 200px;
+}
+
+.nav-logo-icon {
+    color: var(--brand-primary);
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo-text {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.01em;
+    font-family: var(--font-heading);
+}
+
+.nav-center-section {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.nav-item {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+    color: var(--brand-primary);
+}
+
+.nav-right-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-width: 200px;
+    justify-content: flex-end;
+}
+
+.btn-signin {
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.btn-signin:hover {
+    opacity: 0.8;
+}
+
+.btn-getstarted {
+    background-color: var(--brand-primary);
+    color: #000;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 24px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-getstarted:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+    box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
+}
+
+@media (max-width: 1024px) {
+    .nav-center-section {
+        display: none;
+    }
+}

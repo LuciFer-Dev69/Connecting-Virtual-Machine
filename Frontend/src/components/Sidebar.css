@@ -1,0 +1,110 @@
+.sidebar-container {
+    width: 250px;
+    background-color: #0a0d14;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 32px 16px;
+    height: 100%;
+    overflow-y: auto;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.sidebar-header {
+    font-size: 10px;
+    font-weight: 900;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    padding: 0 12px;
+    margin-bottom: 32px;
+    border-left: 2px solid #1e293b;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 4px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+    color: #f8fafc;
+}
+
+.sidebar-link.active {
+    background-color: rgba(255, 255, 255, 0.03);
+    color: #fff;
+    border-left: 3px solid #64748b;
+    /* Fallback */
+}
+
+/* Protocol Specific Indicators */
+.sidebar-container.red-team .sidebar-link.active {
+    border-left-color: var(--accent-red);
+    color: var(--accent-red);
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.05) 0%, transparent 100%);
+}
+
+.sidebar-container.blue-team .sidebar-link.active {
+    border-left-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+}
+
+.sidebar-container.ai-labs .sidebar-link.active {
+    border-left-color: var(--accent-purple);
+    color: var(--accent-purple);
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.05) 0%, transparent 100%);
+}
+
+.sidebar-container.real-life .sidebar-link.active {
+    border-left-color: var(--accent-orange);
+    color: var(--accent-orange);
+    background: linear-gradient(90deg, rgba(249, 115, 22, 0.05) 0%, transparent 100%);
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    margin: 24px 12px;
+}
+
+.sidebar-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    transition: transform 0.2s;
+}
+
+.sidebar-link:hover .sidebar-icon {
+    transform: scale(1.1);
+}
+
+.sidebar-link.active .sidebar-icon {
+    opacity: 1;
+}
+
+/* Scrollbar Style */
+.sidebar-container::-webkit-scrollbar {
+    width: 2px;
+}
+
+.sidebar-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+}

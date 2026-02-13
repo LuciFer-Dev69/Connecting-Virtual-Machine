@@ -1,111 +1,77 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
+from utils.auth import admin_required, log_admin_action
 
 admin_bp = Blueprint('admin', __name__)
 
 @admin_bp.route('/users', methods=['GET'])
-def get_admin_users():
+@admin_required
+def get_admin_users(current_user_id, current_role):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-
-        cursor.execute(
-            "SELECT user_id, name, email, role, progress, created_at FROM users ORDER BY created_at DESC"
-        )
+        cursor.execute("SELECT user_id, name, email, role, progress, created_at, is_suspended FROM users ORDER BY created_at DESC")
         users = cursor.fetchall()
-
         cursor.close()
         conn.close()
-
         return jsonify(users), 200
-
     except Exception as e:
-        print(f"Admin users error: {e}")
-        return jsonify({"error": "Failed to fetch users"}), 500
+        return jsonify({"error": str(e)}), 500
 
-
-@admin_bp.route('/challenges', methods=['POST'])
-def create_challenge():
+@admin_bp.route('/stats', methods=['GET'])
+@admin_required
+def get_admin_stats(current_user_id, current_role):
     try:
-        data = request.get_json()
-        title = data.get('title')
-        description = data.get('description')
-        category = data.get('category')
-        difficulty = data.get('difficulty')
-        level = data.get('level')
-        flag = data.get('flag')
-        hint = data.get('hint')
-        points = data.get('points', 10)
-
-        if not all([title, description, category, difficulty, level, flag]):
-            return jsonify({"error": "Missing required fields"}), 400
-
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-
-        cursor.execute(
-            "INSERT INTO challenges (title, description, category, difficulty, level, flag, hint, points) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-            (title, description, category, difficulty, level, flag, hint, points)
-        )
-        conn.commit()
-        challenge_id = cursor.lastrowid
-
+        cursor.execute("SELECT COUNT(*) as total_users FROM users WHERE role = 'user'")
+        users_count = cursor.fetchone()['total_users']
+        cursor.execute("SELECT COUNT(*) as total_challenges FROM challenges")
+        challenges_count = cursor.fetchone()['total_challenges']
         cursor.close()
         conn.close()
-
-        return jsonify({"id": challenge_id, "message": "Challenge created successfully"}), 201
-
+        return jsonify({"users": users_count, "challenges": challenges_count}), 200
     except Exception as e:
-        print(f"Create challenge error: {e}")
-        return jsonify({"error": "Failed to create challenge"}), 500
+        return jsonify({"error": str(e)}), 500
 
-
-@admin_bp.route('/challenges/<int:challenge_id>', methods=['PUT'])
-def update_challenge(challenge_id):
-    try:
-        data = request.get_json()
-        title = data.get('title')
-        description = data.get('description')
-        category = data.get('category')
-        difficulty = data.get('difficulty')
-        level = data.get('level')
-        flag = data.get('flag')
-        hint = data.get('hint')
-        points = data.get('points', 10)
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "UPDATE challenges SET title = %s, description = %s, category = %s, difficulty = %s, level = %s, flag = %s, hint = %s, points = %s WHERE id = %s",
-            (title, description, category, difficulty, level, flag, hint, points, challenge_id)
-        )
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message": "Challenge updated successfully"}), 200
-
-    except Exception as e:
-        print(f"Update challenge error: {e}")
-        return jsonify({"error": "Failed to update challenge"}), 500
-
-
-@admin_bp.route('/challenges/<int:challenge_id>', methods=['DELETE'])
-def delete_challenge(challenge_id):
+@admin_bp.route('/challenges', methods=['GET'])
+@admin_required
+def get_admin_challenges(current_user_id, current_role):
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("DELETE FROM challenges WHERE id = %s", (challenge_id,))
-        conn.commit()
-
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM challenges ORDER BY level, category")
+        challenges = cursor.fetchall()
         cursor.close()
         conn.close()
-
-        return jsonify({"message": "Challenge deleted successfully"}), 200
-
+        return jsonify(challenges), 200
     except Exception as e:
-        print(f"Delete challenge error: {e}")
-        return jsonify({"error": "Failed to delete challenge"}), 500
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/challenges/lock', methods=['POST'])
+@admin_required
+def toggle_challenge_lock(current_user_id, current_role):
+    data = request.get_json()
+    cid, lock_state = data.get('id'), data.get('is_locked')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE challenges SET is_locked = %s WHERE id = %s", (lock_state, cid))
+    conn.commit()
+    log_admin_action(current_user_id, "TOGGLE_LOCK", "CHALLENGE", cid, not lock_state, lock_state)
+    cursor.close()
+    conn.close()
+    return jsonify({"success": True}), 200
+
+@admin_bp.route('/users/suspend', methods=['POST'])
+@admin_required
+def toggle_user_suspension(current_user_id, current_role):
+    data = request.get_json()
+    uid, suspend_state = data.get('user_id'), data.get('is_suspended')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET is_suspended = %s WHERE user_id = %s", (suspend_state, uid))
+    conn.commit()
+    log_admin_action(current_user_id, "SUSPEND_USER", "USER", uid, not suspend_state, suspend_state)
+    cursor.close()
+    conn.close()
+    return jsonify({"success": True}), 200

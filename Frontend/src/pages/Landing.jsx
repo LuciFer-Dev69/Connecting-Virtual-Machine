@@ -1,219 +1,209 @@
-import React from "react";
-import Navbar from "../components/Navbar";
 
-// Placeholder data for sliders
-const SPONSORS = [
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/IBM_logo.svg/2560px-IBM_logo.svg.png",
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1024px-Amazon_Web_Services_Logo.svg.png",
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2560px-Google_2015_logo.svg.png",
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/2048px-Microsoft_logo.svg.png",
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Cisco_logo_blue_2016.svg/1200px-Cisco_logo_blue_2016.svg.png",
-];
+import React, { useState } from "react";
+import PublicNavbar from "../components/PublicNavbar";
+import Footer from "../components/Footer";
+import { Shield, ChevronRight, Zap, Target, Award, Terminal, Activity, Globe, Cpu } from "lucide-react";
+import './Landing.css';
 
-const CATEGORIES = [
-  { name: "Web Exploitation", icon: "🌐", desc: "Master web vulnerabilities" },
-  { name: "Cryptography", icon: "🔐", desc: "Crack codes and ciphers" },
-  { name: "Forensics", icon: "🔍", desc: "Analyze digital evidence" },
-  { name: "Reverse Engineering", icon: "⚙️", desc: "Decompile and debug" },
-  { name: "AI Security", icon: "🤖", desc: "Hack future intelligence" },
-];
+import MatrixBackground from "../components/MatrixBackground";
 
 export default function Landing() {
+  const [activeTab, setActiveTab] = useState('readiness');
+
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", overflowX: "hidden" }}>
-      <Navbar />
+    <div className="landing-page">
+      <MatrixBackground />
+      <PublicNavbar />
 
-      {/* Hero Section */}
-      <div style={{
-        position: "relative",
-        minHeight: "85vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-start", // Left align
-        overflow: "hidden",
-        padding: "0 5%" // Add some side padding
-      }}>
-        {/* Background Video - Right Aligned */}
-        <div style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: "60%", // Occupy right side
-          height: "100%",
-          overflow: "hidden",
-          zIndex: 0
-        }}>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              opacity: 0.6
-            }}
-          >
-            <source src="/hero-bg.mp4" type="video/mp4" />
-          </video>
-          {/* Gradient Overlay to fade into black on the left */}
-          <div style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "linear-gradient(to right, var(--bg) 0%, transparent 50%, transparent 100%)"
-          }} />
-        </div>
-
-        {/* Hero Content - Left Aligned */}
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "650px", textAlign: "left" }}>
-          <h1 style={{
-            fontSize: "4.5rem",
-            fontWeight: "900",
-            lineHeight: "1.1",
-            marginBottom: "30px",
-            color: "#fff"
-          }}>
-            Think Like a Hacker. <br />
-            <span style={{ color: "var(--cyan)" }}>Defend Like a Pro.</span> <br />
-            Secure the Future.
+      {/* --- HERO SECTION --- */}
+      <section className="hero-wrapper">
+        <div className="hero-geometric-bg"></div>
+        <div className="hero-main">
+          <h1>
+            Cyber Mastery:<br />
+            <span style={{ color: 'var(--brand-primary)' }}>Personal Insight.</span><br />
+            Professional Power.
           </h1>
-          <p style={{ fontSize: "1.25rem", color: "#ccc", marginBottom: "50px", lineHeight: "1.6", maxWidth: "500px" }}>
-            Join the elite community of ethical hackers. Master cybersecurity through hands-on challenges and real-world simulations.
+          <p>
+            Chakra View combines hands-on offensive and defensive labs, AI-enhanced
+            intelligence, and the power of community to help individuals and teams master
+            cybersecurity and accelerate operational readiness.
           </p>
-          <div style={{ display: "flex", gap: "20px" }}>
-            <a href="#/signup" className="btn" style={{
-              padding: "15px 40px",
-              fontSize: "1.1rem",
-              fontWeight: "bold",
-              background: "var(--cyan)", // Keep original Cyan
-              color: "#000",
-              border: "none",
-              borderRadius: "5px",
-              textDecoration: "none"
-            }}>
-              Get Started
+          <div className="hero-cta-group">
+            <a href="#/signup" className="btn-hero-primary">
+              Join the Operation
             </a>
-            <a href="#/about" className="btn btn-ghost" style={{
-              padding: "15px 40px",
-              fontSize: "1.1rem",
-              color: "#fff",
-              border: "1px solid #333",
-              borderRadius: "5px",
-              textDecoration: "none"
-            }}>
-              Read More
+            <a href="#/about" className="nav-item" style={{ fontWeight: 700, fontSize: '1rem' }}>
+              Discover the Platform
             </a>
           </div>
         </div>
-      </div>
-
-      {/* Sponsors Slider (Simulated Ticker) */}
-      <div style={{ padding: "40px 0", background: "var(--card-bg)", borderTop: "1px solid var(--card-border)", borderBottom: "1px solid var(--card-border)" }}>
-        <p style={{ textAlign: "center", color: "#555", marginBottom: "30px", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "2px" }}>Trusted By Industry Leaders</p>
-        <div style={{ overflow: "hidden", whiteSpace: "nowrap", position: "relative" }}>
-          <div style={{ display: "inline-block", animation: "scroll 20s linear infinite" }}>
-            {[...SPONSORS, ...SPONSORS].map((src, i) => (
-              <img key={i} src={src} alt="Sponsor" style={{ height: "40px", margin: "0 50px", opacity: 0.5, filter: "grayscale(100%)" }} />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Challenge Categories Slider */}
-      <div style={{ padding: "80px 20px", textAlign: "center", background: "var(--bg)" }}>
-        <h2 style={{ fontSize: "2.5rem", marginBottom: "50px" }}>Explore Challenges</h2>
-        <div style={{
-          display: "flex",
-          gap: "30px",
-          overflowX: "auto",
-          padding: "20px",
-          scrollbarWidth: "none",
-          justifyContent: "center",
-          flexWrap: "wrap"
-        }}>
-          {CATEGORIES.map((cat, i) => (
-            <div key={i} style={{
-              background: "var(--card-bg)",
-              border: "1px solid var(--card-border)",
-              borderRadius: "20px",
-              padding: "40px",
-              minWidth: "250px",
-              textAlign: "center",
-              transition: "transform 0.3s ease, border-color 0.3s ease",
-              cursor: "pointer"
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-10px)"; e.currentTarget.style.borderColor = "var(--cyan)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+        <div className="hero-visual-side">
+          <div className="hero-video-container">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="hero-video"
             >
-              <div style={{ fontSize: "3rem", marginBottom: "20px" }}>{cat.icon}</div>
-              <h3 style={{ marginBottom: "10px", color: "var(--cyan)" }}>{cat.name}</h3>
-              <p style={{ color: "#888" }}>{cat.desc}</p>
-            </div>
-          ))}
+              <source src="/assets/hacker-bg.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div className="video-overlay"></div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Events Section */}
-      <div style={{ padding: "80px 20px", background: "var(--card-bg)", textAlign: "center" }}>
-        <h2 style={{ fontSize: "2.5rem", marginBottom: "50px" }}>Upcoming CTF Events</h2>
-        <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "left" }}>
-          <div style={{ display: "flex", gap: "20px", alignItems: "center", marginBottom: "30px", background: "#1a1a1a", padding: "20px", borderRadius: "10px" }}>
-            <div style={{ background: "var(--cyan)", color: "#000", padding: "10px 20px", borderRadius: "8px", fontWeight: "bold", textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem" }}>15</div>
-              <div>AUG</div>
+      {/* --- TRUSTED BY --- */}
+      <section className="trusted-section">
+        <div className="trusted-title">Leading the next generation of security pros</div>
+        <div className="logo-cloud">
+          {/* Mock Logos for Professional Look */}
+          <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff' }}>HACKER</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff' }}>SECURE</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff' }}>QUANTUM</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff' }}>DEFENSE</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff' }}>CHAKRA</span>
+        </div>
+      </section>
+
+      {/* --- VALIDATION SECTION --- */}
+      <section className="validation-section">
+        <div className="validation-header">
+          <h2>Emulate Real Threats. Validate Readiness.</h2>
+        </div>
+
+        <div className="tab-container">
+          <button
+            className={`tab-trigger ${activeTab === 'readiness' ? 'active' : ''}`}
+            onClick={() => setActiveTab('readiness')}
+          >
+            Validate Your Readiness
+          </button>
+          <button
+            className={`tab-trigger ${activeTab === 'workforce' ? 'active' : ''}`}
+            onClick={() => setActiveTab('workforce')}
+          >
+            Develop Your Workforce
+          </button>
+          <button
+            className={`tab-trigger ${activeTab === 'resilience' ? 'active' : ''}`}
+            onClick={() => setActiveTab('resilience')}
+          >
+            Achieve Cyber Resilience
+          </button>
+        </div>
+
+        <div className="validation-content-card">
+          <div className="v-text">
+            <h3>{activeTab === 'readiness' ? 'Emulate Real Threats.' : activeTab === 'workforce' ? 'Scale Your Team.' : 'Always Prepared.'}</h3>
+            <p>
+              Validate cybersecurity capabilities and operational readiness against real-world
+              threats by replicating adversarial behaviors or attacks in threat simulation
+              programs.
+            </p>
+            <div className="v-features">
+              <div className="v-feature-item">
+                <h4>Enterprise attack simulation training</h4>
+                <p>Real-world attack simulations and live-fire team exercises.</p>
+              </div>
+              <div className="v-feature-item">
+                <h4>Purple-minded scenarios</h4>
+                <p>Replicate complex multi-stage threats because modern breaches exploit entire networks.</p>
+              </div>
             </div>
-            <div>
-              <h3 style={{ marginBottom: "5px" }}>Chakra CTF 2024 Qualifiers</h3>
-              <p style={{ color: "#888", marginBottom: "0" }}>Online • 48 Hours • Teams of 4</p>
+          </div>
+          <div className="v-visual">
+            <div style={{
+              width: '100%',
+              height: '550px', // Increased height to accommodate the detailed interface
+              background: '#0b0f19',
+              borderRadius: '24px',
+              border: '1px solid var(--border-primary)',
+              overflow: 'hidden',
+              position: 'relative',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
+            }}>
+              <iframe
+                src="https://livethreatmap.radware.com/"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  // Applying a subtle blue tint to integrate with the theme without distorting the map too much
+                  filter: 'sepia(0.2) hue-rotate(180deg) contrast(1.1) brightness(0.9)'
+                }}
+                title="Live Cyber Threat Map"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+              ></iframe>
+
+              {/* Inner Border Glow for consistent branding */}
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                boxShadow: 'inset 0 0 30px rgba(0, 212, 255, 0.1)',
+                pointerEvents: 'none',
+                zIndex: 20
+              }}></div>
             </div>
-            <div style={{ marginLeft: "auto" }}>
-              <button className="btn btn-ghost" style={{ color: "var(--cyan)", border: "1px solid var(--cyan)" }}>Register</button>
+          </div>
+        </div>
+      </section>
+
+      {/* --- AUDIENCE/SECTORS --- */}
+      <section className="sectors-section">
+        <div className="sectors-grid">
+          <div className="sector-card">
+            <div className="sector-image" style={{ background: 'linear-gradient(45deg, #0b0f19, #1e293b)' }}></div>
+            <div className="sector-body">
+              <h3>For Individuals</h3>
+              <p>Learn, refine and master your cyber skills in the ultimate gamified platform.</p>
+              <a href="#/signup" className="btn-sector">Begin your journey <ChevronRight size={16} /></a>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "20px", alignItems: "center", background: "#1a1a1a", padding: "20px", borderRadius: "10px" }}>
-            <div style={{ background: "#444", color: "#fff", padding: "10px 20px", borderRadius: "8px", fontWeight: "bold", textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem" }}>01</div>
-              <div>OCT</div>
+          <div className="sector-card">
+            <div className="sector-image" style={{ background: 'linear-gradient(45deg, #05080f, #0b0f19)' }}></div>
+            <div className="sector-body">
+              <h3>For Businesses</h3>
+              <p>Build and scale threat-ready enterprise cyber teams with targeted challenges.</p>
+              <a href="#/signup" className="btn-sector">Scale your team <ChevronRight size={16} /></a>
             </div>
-            <div>
-              <h3 style={{ marginBottom: "5px" }}>Cyber Defense Summit</h3>
-              <p style={{ color: "#888", marginBottom: "0" }}>Workshop • Hybrid</p>
-            </div>
-            <div style={{ marginLeft: "auto" }}>
-              <button className="btn btn-ghost" disabled>Coming Soon</button>
+          </div>
+
+          <div className="sector-card">
+            <div className="sector-image" style={{ background: 'linear-gradient(45deg, #111927, #1e293b)' }}></div>
+            <div className="sector-body">
+              <h3>For Academic</h3>
+              <p>Cyber career development designed specifically for educational institutions.</p>
+              <a href="#/signup" className="btn-sector">Learn more <ChevronRight size={16} /></a>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer style={{ padding: "80px 20px", borderTop: "1px solid var(--card-border)", background: "var(--bg)", textAlign: "center", color: "var(--muted)" }}>
-        <div style={{ marginBottom: "20px" }}>
-          <img src="/logo.png" alt="Logo" style={{ height: "100px", marginBottom: "20px" }} />
-          <p>&copy; 2024 ChakraView CTF Platform. All rights reserved.</p>
+      {/* --- AI RANGE BANNER --- */}
+      <section style={{ padding: '0 40px 100px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #0b0f19, #05080f)',
+          borderRadius: '24px',
+          padding: '60px',
+          border: '1px solid var(--border-primary)',
+          textAlign: 'center'
+        }}>
+          <span style={{ color: 'var(--brand-primary)', fontWeight: 700, letterSpacing: '0.1em', fontSize: '0.9rem' }}>LATEST PRODUCT NEWS</span>
+          <h2 style={{ fontSize: '3rem', margin: '20px 0 40px' }}>Chakra View launches the world's <span style={{ color: 'var(--brand-primary)' }}>first AI Range</span></h2>
+          <p style={{ maxWidth: '800px', margin: '0 auto 40px', fontSize: '1.2rem' }}>
+            The world's first controlled AI cyber range built to test and benchmark the safety,
+            limits and capabilities of autonomous AI security agents.
+          </p>
+          <a href="#/signup" className="btn-hero-primary">Learn more</a>
         </div>
-        <div style={{ display: "flex", gap: "30px", justifyContent: "center", marginBottom: "30px" }}>
-          <a href="#" style={{ color: "#888", textDecoration: "none" }}>Terms</a>
-          <a href="#" style={{ color: "#888", textDecoration: "none" }}>Privacy</a>
-          <a href="#" style={{ color: "#888", textDecoration: "none" }}>Contact</a>
-        </div>
-        <div>
-          <p style={{ fontSize: "0.8rem" }}>Built for the community, by the community.</p>
-        </div>
-      </footer>
+      </section>
 
-      {/* CSS for Ticker Animation */}
-      <style>{`
-        @keyframes scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
+      <Footer />
     </div>
   );
 }

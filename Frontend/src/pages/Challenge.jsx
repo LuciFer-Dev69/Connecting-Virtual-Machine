@@ -1,200 +1,216 @@
 import React, { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import { useParams, useNavigate } from "react-router-dom";
 import WebTerminal from "../components/WebTerminal";
 import { API_BASE } from "../config";
-import { Terminal, X } from "lucide-react";
+import {
+  Terminal, Shield, Zap, Info, Flag, ChevronRight,
+  Loader2, AlertCircle, CheckCircle2, Lightbulb, Play
+} from "lucide-react";
+import PageTemplate from "../components/templates/PageTemplate";
+import './Challenge.css';
 
-export default function Challenge({ id }) {
+export default function Challenge() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [chal, setChal] = useState(null);
   const [flag, setFlag] = useState("");
   const [msg, setMsg] = useState("");
   const [hint, setHint] = useState(null);
   const [showTerminal, setShowTerminal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     fetch(`${API_BASE}/challenges/${id}`)
       .then(r => r.json())
-      .then(setChal);
+      .then(data => {
+        if (!data || data.error) {
+          navigate(-1);
+        } else {
+          setChal(data);
+        }
+      })
+      .catch(() => navigate(-1));
   }, [id]);
 
   const submitFlag = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API_BASE}/submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.user_id, id: Number(id), flag })
-    });
-    const data = await res.json();
-    setMsg(data.result || data.error);
-  };
+    if (!flag.trim()) return;
+    setIsSubmitting(true);
+    setMsg("");
 
-  const getHint = async () => {
-    const res = await fetch(`${API_BASE}/hint`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.user_id, id: Number(id) })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setHint(data.hint);
-    } else {
-      setMsg(data.error || "Could not fetch hint");
+    try {
+      const res = await fetch(`${API_BASE}/challenges/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.user_id, challenge_id: Number(id), flag })
+      });
+      const data = await res.json();
+      setMsg(data.status === "success" ? "Operation Successful: Flag Accepted" : (data.message || "Invalid Flag"));
+    } catch (err) {
+      setMsg("Connection error. Try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (!chal) return <div>Loading...</div>;
+  const getHint = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/challenges/hint`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.user_id, challenge_id: Number(id) })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setHint(data.hint);
+      } else {
+        setMsg(data.message || "Information restricted.");
+      }
+    } catch (e) {
+      setMsg("Intel retrieval failed.");
+    }
+  };
+
+  const [pwnboxInfo, setPwnboxInfo] = useState(null);
+  const [isSpawning, setIsSpawning] = useState(false);
+
+  const toggleTerminal = async () => {
+    if (!showTerminal && !pwnboxInfo) {
+      setIsSpawning(true);
+      try {
+        const res = await fetch(`${API_BASE}/pwnbox/spawn`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.user_id })
+        });
+        const data = await res.json();
+        setPwnboxInfo(data);
+      } catch (e) {
+        console.error("PwnBox spawn error:", e);
+      } finally {
+        setIsSpawning(false);
+      }
+    }
+    setShowTerminal(!showTerminal);
+  };
+
+  if (!chal) {
+    return (
+      <div className="flex-center" style={{ height: "400px", color: "var(--accent-blue)" }}>
+        <Loader2 className="animate-spin" size={48} />
+      </div>
+    );
+  }
+
+  const isCorrect = msg && msg.includes("Successful");
+  const isRed = chal.category?.toLowerCase().includes("red") || !chal.category?.toLowerCase().includes("blue");
 
   return (
-    <div>
-      <Navbar />
-      <div style={{ display: "flex" }}>
-        <Sidebar />
-        <main className="container" style={{ maxWidth: "1200px" }}>
-
-          {/* HEADER SECTION */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "30px", borderBottom: "1px solid var(--card-border)", paddingBottom: "20px" }}>
-            <div>
-              <h1 style={{ color: "var(--cyan)", margin: "0 0 10px 0" }}>{chal.title}</h1>
-              <div style={{ display: "flex", gap: "10px", fontSize: "0.9em", color: "var(--muted)" }}>
-                <span style={{ background: "var(--card-bg)", padding: "4px 8px", borderRadius: "4px", border: "1px solid var(--card-border)" }}>{chal.category}</span>
-                <span style={{ background: "var(--card-bg)", padding: "4px 8px", borderRadius: "4px", border: "1px solid var(--card-border)" }}>Level {chal.level}</span>
-                <span style={{ color: chal.difficulty === "Easy" ? "var(--green)" : chal.difficulty === "Medium" ? "orange" : "var(--danger)" }}>{chal.difficulty}</span>
-              </div>
-            </div>
-
-            {/* SPAWN PWNBOX BUTTON */}
-            <button
-              onClick={() => setShowTerminal(!showTerminal)}
-              style={{
-                background: "#1a1a1a",
-                border: showTerminal ? "1px solid var(--danger)" : "1px solid var(--green)",
-                color: showTerminal ? "var(--danger)" : "var(--green)",
-                padding: "12px 20px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                fontWeight: "bold",
-                boxShadow: showTerminal ? "0 0 15px rgba(255, 107, 107, 0.2)" : "0 0 15px rgba(32, 201, 151, 0.2)",
-                transition: "all 0.3s"
-              }}
-            >
-              <Terminal size={18} />
-              {showTerminal ? "Terminate PwnBox" : "Spawn PwnBox"}
-            </button>
-          </div>
-
-          {/* TOP SECTION: LEVEL GOAL / DESCRIPTION */}
-          <div className="card">
-            <h2 style={{ color: "var(--text)", marginTop: 0, borderBottom: "1px solid var(--card-border)", paddingBottom: "10px", marginBottom: "15px" }}>
-              Level Goal
-            </h2>
-            <div style={{ lineHeight: "1.6" }}>
-              <p>{chal.description}</p>
-
-              {/* Static placeholders mimicking OneTheWire style */}
-              <div style={{ marginTop: "20px" }}>
-                <h4 style={{ color: "var(--muted)", marginBottom: "10px" }}>Commands you may need to solve this level</h4>
-                <code style={{ background: "#222", padding: "5px 10px", borderRadius: "4px", color: "var(--cyan)" }}>
-                  ssh, ls, cat, strings, base64, grep, find
-                </code>
-              </div>
-            </div>
-          </div>
-
-          {/* MIDDLE SECTION: DYNAMIC CONTENT (Appears on Spawn) */}
-          {showTerminal && (
-            <div className="card" style={{
-              marginTop: "20px",
-              borderLeft: "4px solid var(--green)",
-              animation: "fadeIn 0.5s ease"
-            }}>
-              <h3 style={{ marginTop: 0, color: "var(--green)" }}>✅ PwnBox Instance Active</h3>
-              <p>The interactive environment has been spawned below. You have full root access.</p>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "15px" }}>
-                <div style={{ background: "#000", padding: "15px", borderRadius: "6px" }}>
-                  <div style={{ color: "var(--muted)", fontSize: "0.8em", marginBottom: "5px" }}>TARGET HOST</div>
-                  <div style={{ fontFamily: "monospace", color: "var(--cyan)", fontSize: "1.1em" }}>127.0.0.1 (Local)</div>
+    <div className={`challenge-page-wrapper ${isRed ? 'red-mission' : 'blue-mission'}`} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+      <PageTemplate
+        title={chal.title}
+        subtitle={`Mission ID: SEC-${chal.id.toString().padStart(4, '0')} // Operational Sector: ${chal.category}`}
+        actions={
+          <button
+            className="btn-submit"
+            onClick={toggleTerminal}
+            disabled={isSpawning}
+            style={{ padding: '8px 16px', fontSize: '14px', background: showTerminal ? 'var(--brand-danger)' : 'var(--accent-blue)' }}
+          >
+            {isSpawning ? <><Loader2 className="animate-spin" size={18} /> Syncing Node...</> :
+              showTerminal ? <><Terminal size={18} /> Exit Environment</> : <><Play size={18} /> Deploy PwnBox</>}
+          </button>
+        }
+      >
+        <div className="challenge-view-container">
+          <div className="challenge-main-col">
+            {showTerminal ? (
+              <div className="pwnbox-deployment">
+                <div className="pwnbox-bar">
+                  <span className="terminal-path">
+                    {pwnboxInfo ? (
+                      <span style={{ color: 'var(--accent-blue)' }}>
+                        {pwnboxInfo.user}@chakraview:~/ops# <span style={{ color: '#64748b', marginLeft: '10px' }}>[CREDENTIALS // USER: {pwnboxInfo.user} PASS: {pwnboxInfo.password}]</span>
+                      </span>
+                    ) : 'Establishing Neural Uplink...'}
+                  </span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff5f56' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffbd2e' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#27c93f' }} />
+                  </div>
                 </div>
-                <div style={{ background: "#000", padding: "15px", borderRadius: "6px" }}>
-                  <div style={{ color: "var(--muted)", fontSize: "0.8em", marginBottom: "5px" }}>CREDENTIALS</div>
-                  <div style={{ fontFamily: "monospace", color: "var(--green)", fontSize: "1.1em" }}>user / user</div>
+                <div style={{ flex: 1, background: '#000' }}>
+                  <WebTerminal connectionInfo={pwnboxInfo} onExit={() => setShowTerminal(false)} challenge_id={id} />
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* BOTTOM SECTION: EMBEDDED TERMINAL */}
-          {showTerminal && (
-            <div style={{
-              marginTop: "20px",
-              height: "600px",
-              border: "1px solid #333",
-              borderRadius: "8px",
-              overflow: "hidden",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-              animation: "slideUp 0.5s ease"
-            }}>
-              {/* Terminal Header */}
-              <div style={{ background: "#1e1e1e", padding: "8px 15px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #333" }}>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ff5f56" }}></div>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ffbd2e" }}></div>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#27c93f" }}></div>
+            ) : (
+              <div className="mission-card">
+                <div className="mission-header">
+                  <div className="mission-meta">
+                    <span className="meta-item">{chal.category}</span>
+                    <span className="meta-item">{chal.difficulty}</span>
+                    <span className="meta-item">{chal.points} XP</span>
+                  </div>
                 </div>
-                <span style={{ color: "#888", fontSize: "12px" }}>root@pwnbox:~</span>
-                <div style={{ width: "40px" }}></div>
-              </div>
-              {/* Actual Terminal Component */}
-              <div style={{ height: "calc(100% - 35px)", background: "#000" }}>
-                <WebTerminal host="pwnbox" user={user} onExit={() => setShowTerminal(false)} />
-              </div>
-            </div>
-          )}
+                <div className="mission-objective">
+                  <h3><Info size={20} className="text-primary" /> MISSION_BRIEFING</h3>
+                  <div className="mission-description">{chal.description}</div>
+                </div>
 
-          {/* SUBMISSION SECTION */}
-          {!showTerminal && hint && (
-            <div className="card" style={{ marginTop: "20px", border: "1px solid var(--cyan)" }}>
-              <b>💡 Hint:</b> {hint}
-            </div>
-          )}
-
-          <div className="card" style={{ marginTop: "20px" }}>
-            <h3>Submit Flag</h3>
-            <form onSubmit={submitFlag} style={{ display: "flex", gap: "10px" }}>
-              <input
-                className="input"
-                style={{ marginBottom: 0 }}
-                placeholder="flag{...}"
-                value={flag}
-                onChange={e => setFlag(e.target.value)}
-              />
-              <button className="btn btn-green">Submit Flag</button>
-            </form>
-
-            {!showTerminal && (
-              <div style={{ marginTop: "15px" }}>
-                <button onClick={getHint} className="btn btn-ghost" style={{ fontSize: "0.9em", padding: "6px 12px" }}>
-                  Need a Hint?
-                </button>
+                <div className="recommended-tools" style={{ marginTop: '2rem' }}>
+                  <h4 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '12px', textTransform: 'uppercase' }}>Recommended Arsenal</h4>
+                  <div className="tools-list">
+                    {["ssh", "nmap", "cat", "grep", "curl", "base64"].map(tool => (
+                      <span key={tool} className="tool-tag">{tool}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
-
-            {msg && <p style={{ marginTop: "15px", padding: "10px", background: msg.includes("Correct") ? "rgba(32, 201, 151, 0.1)" : "rgba(255, 107, 107, 0.1)", borderRadius: "4px", borderLeft: msg.includes("Correct") ? "4px solid var(--green)" : "4px solid var(--danger)" }}>{msg}</p>}
           </div>
 
-        </main>
-      </div>
+          <aside className="challenge-sidebar">
+            <div className="widget-card">
+              <div className="widget-title"><Flag size={18} className="text-primary" /> Neutralize Threat</div>
+              <form onSubmit={submitFlag} className="flag-input-group">
+                <input
+                  className="flag-input"
+                  placeholder="CHAKRA{...}"
+                  value={flag}
+                  onChange={e => setFlag(e.target.value)}
+                  disabled={isCorrect}
+                />
+                <button
+                  type="submit"
+                  className={`btn-submit ${isCorrect ? 'success' : ''}`}
+                  disabled={isSubmitting || isCorrect || !flag.trim()}
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : isCorrect ? 'COMMITTED' : 'SUBMIT FLAG'}
+                </button>
+              </form>
+              {msg && (
+                <div className={`submission-msg ${isCorrect ? 'success' : 'error'}`}>
+                  {isCorrect ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                  {msg}
+                </div>
+              )}
+            </div>
 
-      {/* Simple animations */}
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-      `}</style>
+            <div className="widget-card">
+              <div className="widget-title"><Lightbulb size={18} className="text-primary" /> Mission Intel</div>
+              {hint ? (
+                <div className="intel-text">{hint}</div>
+              ) : (
+                <button className="btn-outline" onClick={getHint} style={{ width: '100%', fontSize: '12px' }}>
+                  REQUEST INTEL DISCLOSURE
+                </button>
+              )}
+            </div>
+          </aside>
+        </div>
+      </PageTemplate>
     </div>
   );
 }

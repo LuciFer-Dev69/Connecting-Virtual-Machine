@@ -65,7 +65,8 @@ services:
       - ./Frontend:/app
       - /app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     networks:
       - chakra-network
     stdin_open: true
@@ -84,7 +85,7 @@ services:
       - "3003:3000"
       - "3004:3002"
       - "6060:6060"
-      - "7010:7071" # Remapped host port due to Windows exclusion range
+      - "7010:7071"
       - "9090:9090"
       - "8088:8088"
       - "9091:9091"
@@ -95,10 +96,30 @@ services:
       - "5105:5105"
     volumes:
       - ./Backend/phantom-shop:/opt/phantom-shop
+    depends_on:
+      - backend
     networks:
       - chakra-network
     cap_add:
       - NET_ADMIN
+
+  # Automatic Database Seeder
+  init-db:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: chakra_init_db
+    environment:
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASSWORD=userpassword
+      - DB_NAME=chakraDB
+    command: python init_db.py
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - chakra-network
 
 networks:
   chakra-network:

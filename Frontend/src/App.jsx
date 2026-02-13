@@ -1,5 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
+import { NavigationProvider } from "./context/NavigationContext";
+
+// Layouts
+import RootLayout from "./layouts/RootLayout";
+import RedTeamLayout from "./layouts/RedTeamLayout";
+import BlueTeamLayout from "./layouts/BlueTeamLayout";
+import AILabLayout from "./layouts/AILabLayout";
+import RealLifeLayout from "./layouts/RealLifeLayout";
+import PwnBoxLayout from "./layouts/PwnBoxLayout";
+
+// Pages
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -7,246 +19,107 @@ import Dashboard from "./pages/Dashboard";
 import Challenges from "./pages/Challenges";
 import CategoryChallenges from "./pages/CategoryChallenges";
 import Challenge from "./pages/Challenge";
-import Progress from "./pages/Progress";
-import Hints from "./pages/Hints";
-import Leaderboard from "./pages/Leaderboard";
-import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
-import Tutorials from "./pages/Tutorials";
-import Tutorial from "./pages/Tutorial";
-import Lessons from "./pages/Lessons";
-import Lesson from "./pages/Lesson";
-import About from "./pages/About";
-import AIChallenge from "./pages/AIChallenge";
-import WebChallenge from "./pages/WebChallenge";
-import CryptoChallenge from "./pages/CryptoChallenge";
-import ForensicsChallenge from "./pages/ForensicsChallenge";
-import ReverseChallenge from "./pages/ReverseChallenge";
-import MiscChallenge from "./pages/MiscChallenge";
-import LinuxChallenge from "./pages/LinuxChallenge";
+import Admin from "./pages/Admin";
 import ChakraTerminal from "./pages/ChakraTerminal";
-import RealLifeChallenges from "./pages/RealLifeChallenges";
-import RealLifeChallenge from "./pages/RealLifeChallenge";
-import XSSChallenge from "./pages/XSSChallenge";
-import UploadChallenge from "./pages/UploadChallenge";
-import SQLiChallenge from "./pages/SQLiChallenge";
-import BusinessLogicChallenge from "./pages/BusinessLogicChallenge";
-import DefensiveChallenge from "./pages/DefensiveChallenge";
-import AIPromptInjectionChallenge from "./pages/AIPromptInjectionChallenge";
 import AIPromptInjectionLab from "./pages/AIPromptInjectionLab";
 import AILogAnalyzer from "./pages/AILogAnalyzer";
+import RealLifeChallenges from "./pages/RealLifeChallenges";
+import RealLifeChallenge from "./pages/RealLifeChallenge";
+import Modules from "./pages/Modules";
 
-
-
-function parseHash() {
-  const h = window.location.hash || "#/";
-  const parts = h.replace("#", "").split("/").filter(Boolean);
-
-  console.log("Parsing hash:", h, "Parts:", parts);
-
-  if (parts.length === 0 || parts[0] === "") return { route: "landing" };
-  if (parts[0] === "login") return { route: "login" };
-  if (parts[0] === "signup") return { route: "signup" };
-  if (parts[0] === "dashboard") return { route: "dashboard" };
-  if (parts[0] === "about") return { route: "about" };
-
-  if (parts[0] === "challenges" && parts[1] === "XSS") {
-    return { route: "xss-challenge" };
-  }
-  if (parts[0] === "challenges" && parts[1]) {
-    return { route: "category", params: { category: decodeURIComponent(parts[1]) } };
-  }
-  if (parts[0] === "challenges") return { route: "challenges" };
-
-  if (parts[0] === "progress") return { route: "progress" };
-  if (parts[0] === "hints") return { route: "hints" };
-  if (parts[0] === "leaderboard") return { route: "leaderboard" };
-  if (parts[0] === "challenge") return { route: "challenge", params: { id: parts[1] || "1" } };
-  if (parts[0] === "profile") return { route: "profile" };
-  if (parts[0] === "tutorials") return { route: "tutorials" };
-  if (parts[0] === "tutorial") return { route: "tutorial", params: { id: parts[1] || "1" } };
-  if (parts[0] === "lessons") return { route: "lessons" };
-  if (parts[0] === "lesson") return { route: "lesson", params: { id: parts[1] || "1" } };
-
-  // AI Challenge with level parameter
-  if (parts[0] === "ai-challenge") {
-    const level = parts[1] ? parseInt(parts[1]) : 1;
-    console.log("AI Challenge route detected, level:", level);
-    return { route: "ai-challenge", params: { level: level } };
-  }
-
-  // Web Challenge with level parameter
-  if (parts[0] === "web-challenge") {
-    const level = parts[1] ? parseInt(parts[1]) : 1;
-    return { route: "web-challenge", params: { level: level } };
-  }
-
-  // Crypto Challenge
-  if (parts[0] === "crypto-challenge") {
-    const level = parts[1] ? parseInt(parts[1]) : 1;
-    return { route: "crypto-challenge", params: { level: level } };
-  }
-
-  // Forensics Challenge
-  if (parts[0] === "forensics-challenge") {
-    const level = parts[1] ? parseInt(parts[1]) : 1;
-    return { route: "forensics-challenge", params: { level: level } };
-  }
-
-  // Reverse Challenge
-  if (parts[0] === "reverse-challenge") {
-    const level = parts[1] ? parseInt(parts[1]) : 1;
-    return { route: "reverse-challenge", params: { level: level } };
-  }
-
-  // Misc Challenge
-  if (parts[0] === "misc-challenge") {
-    const level = parts[1] ? parseInt(parts[1]) : 1;
-    return { route: "misc-challenge", params: { level: level } };
-  }
-
-  // Linux Challenge
-  if (parts[0] === "linux-challenge") {
-    const level = parts[1] ? parseInt(parts[1]) : 1;
-    return { route: "linux-challenge", params: { level: level } };
-  }
-
-  // PwnBox / Bandit
-  if (parts[0] === "pwnbox") return { route: "pwnbox" };
-
-  // Real-Life Challenges / Easy Labs
-  if ((parts[0] === "real-life-challenges" || parts[0] === "easy-lab") && parts[1]) {
-    return { route: "real-life-challenge", params: { id: parts[1] } };
-  }
-  if (parts[0] === "real-life-challenges" || parts[0] === "easy-labs") return { route: "real-life-challenges" };
-
-  // XSS Challenge
-  if (parts[0] === "xss-challenge") return { route: "xss-challenge" };
-
-  // File Upload Challenge
-  if (parts[0] === "upload-challenge") return { route: "upload-challenge" };
-
-  // SQLi Challenge
-  if (parts[0] === "sqli-challenge") return { route: "sqli-challenge" };
-
-  // Business Logic Challenge
-  if (parts[0] === "logic-challenge") return { route: "logic-challenge" };
-
-  // Blue Team / Defensive Challenges
-  if (parts[0] === "defensive-challenge") {
-    const id = parts[1] ? parseInt(parts[1]) : 1;
-    return { route: "defensive-challenge", params: { id } };
-  }
-
-  if (parts[0] === "admin") return { route: "admin" };
-  if (parts[0] === "red-team") return { route: "red-team" };
-  if (parts[0] === "blue-team") return { route: "blue-team" };
-  if (parts[0] === "ai-prompt-injection") return { route: "ai-prompt-injection" };
-  if (parts[0] === "ai-log-analyzer") return { route: "ai-log-analyzer" };
-
-  return { route: "landing" };
-}
-
-
-
-export default function App() {
-  const [route, setRoute] = useState(parseHash());
-
+// Protected Route Wrapper
+const ProtectedRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-
-  useEffect(() => {
-    const onHashChange = () => {
-      const newRoute = parseHash();
-      console.log("Hash changed, new route:", newRoute);
-      setRoute(newRoute);
-    };
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
-  }, []);
-
   const isAuthed = user && Object.prototype.hasOwnProperty.call(user, "user_id");
+
+  if (!isAuthed) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+// Admin Route Wrapper
+const AdminRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isAdmin = user?.role === "admin";
 
-  const protectedRoutes = [
-    "dashboard", "category", "challenge", "progress", "hints", "leaderboard", "admin", "profile", "tutorials", "tutorial", "lessons", "lesson", "ai-challenge", "web-challenge", "crypto-challenge", "forensics-challenge", "reverse-challenge", "misc-challenge", "linux-challenge", "pwnbox", "about", "real-life-challenges", "real-life-challenge", "xss-challenge", "upload-challenge", "sqli-challenge", "logic-challenge", "defensive-challenge", "ai-prompt-injection"
-  ];
-
-  if (protectedRoutes.includes(route.route) && !isAuthed) {
-    window.location.hash = "#/login";
-    return <Login />;
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
+  return children;
+};
 
-  console.log("Current route:", route);
-
-  const renderRoute = () => {
-    switch (route.route) {
-      case "login": return <Login />;
-      case "signup": return <Signup />;
-      case "dashboard": return <Dashboard />;
-      case "challenges": return <Challenges />;
-      case "category": return <CategoryChallenges category={route.params?.category} />;
-      case "challenge": return <Challenge id={route.params?.id} />;
-      case "progress": return <Progress />;
-      case "hints": return <Hints />;
-      case "leaderboard": return <Leaderboard />;
-      case "profile": return <Profile />;
-      case "tutorials": return <Tutorials />;
-      case "tutorial": return <Tutorial id={route.params?.id} />;
-      case "lessons": return <Lessons />;
-      case "lesson": return <Lesson id={route.params?.id} />;
-      case "about": return <About />;
-      case "ai-challenge":
-        console.log("Rendering AIChallenge with level:", route.params?.level);
-        return <AIChallenge level={route.params?.level} />;
-      case "web-challenge":
-        return <WebChallenge level={route.params?.level} />;
-      case "crypto-challenge":
-        return <CryptoChallenge level={route.params?.level} />;
-      case "forensics-challenge":
-        return <ForensicsChallenge level={route.params?.level} />;
-      case "reverse-challenge":
-        return <ReverseChallenge level={route.params?.level} />;
-      case "misc-challenge":
-        return <MiscChallenge level={route.params?.level} />;
-      case "linux-challenge":
-        return <LinuxChallenge level={route.params?.level} />;
-      case "pwnbox":
-        return <ChakraTerminal />;
-      case "real-life-challenges":
-        return <RealLifeChallenges />;
-      case "real-life-challenge":
-        return <RealLifeChallenge id={route.params?.id} />;
-      case "xss-challenge":
-        return <XSSChallenge />;
-      case "upload-challenge":
-        return <UploadChallenge />;
-      case "sqli-challenge":
-        return <SQLiChallenge />;
-      case "logic-challenge":
-        return <BusinessLogicChallenge />;
-      case "defensive-challenge":
-        return <DefensiveChallenge id={route.params?.id} />;
-      case "red-team":
-        return <Challenges initialView="red-roadmap" />;
-      case "blue-team":
-        return <Challenges initialView="blue-roadmap" />;
-      case "ai-prompt-injection":
-        return <AIPromptInjectionLab />;
-      case "ai-log-analyzer":
-        return <AILogAnalyzer />;
-      case "admin":
-        if (!isAdmin) {
-          window.location.hash = "#/dashboard";
-          return <Dashboard />;
-        }
-        return <Admin />;
-      default: return <Landing />;
-    }
-  };
-
+export default function App() {
   return (
     <ThemeProvider>
-      {renderRoute()}
+      <NavigationProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* App Routes (Protected) */}
+          <Route path="/" element={<ProtectedRoute><RootLayout /></ProtectedRoute>}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="modules" element={<Modules />} />
+
+            {/* Red Team Section */}
+            <Route path="red-team" element={<RedTeamLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<Challenges initialView="red-roadmap" />} />
+              <Route path="roadmap" element={<Challenges initialView="red-roadmap" />} />
+              <Route path="challenges" element={<Challenges initialView="all" />} />
+              <Route path="category/:category" element={<CategoryChallenges />} />
+              <Route path="challenge/:id" element={<Challenge />} />
+            </Route>
+
+            {/* Blue Team Section */}
+            <Route path="blue-team" element={<BlueTeamLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<Challenges initialView="blue-roadmap" />} />
+              <Route path="roadmap" element={<Challenges initialView="blue-roadmap" />} />
+              <Route path="forensics" element={<Challenges initialView="blue-roadmap" />} />
+              <Route path="alerts" element={<Challenges initialView="blue-roadmap" />} />
+            </Route>
+
+            {/* AI Labs Section */}
+            <Route path="ai-labs" element={<AILabLayout />}>
+              <Route index element={<Navigate to="prompt-injection" replace />} />
+              <Route path="prompt-injection" element={<AIPromptInjectionLab />} />
+              <Route path="log-analysis" element={<AILogAnalyzer />} />
+            </Route>
+
+            {/* Real Life Section */}
+            <Route path="real-life" element={<RealLifeLayout />}>
+              <Route index element={<Navigate to="corporate" replace />} />
+              <Route path="corporate" element={<RealLifeChallenges />} />
+              <Route path="infrastructure" element={<RealLifeChallenges />} />
+              <Route path="insider" element={<RealLifeChallenges />} />
+              <Route path="challenge/:id" element={<RealLifeChallenge />} />
+            </Route>
+
+            {/* PwnBox Section (Nested in RootLayout for Top Nav access, or separate?) 
+                The prompt asked for separation. But usually PwnBox needs Top Nav to exit.
+                If I nest it here, it gets PwnBoxLayout INSIDE RootLayout (nested Outlet).
+                Let's check if RootLayout handles nested layout properly. 
+                Yes, RootLayout renders <Outlet />, which renders PwnBoxLayout, which renders <Outlet /> (Terminal). 
+                Top Nav remains visible. This is good for "Platform" feel.
+            */}
+            <Route path="pwnbox" element={<PwnBoxLayout />}>
+              <Route index element={<ChakraTerminal />} />
+            </Route>
+
+            {/* User & Admin */}
+            <Route path="profile" element={<Profile />} />
+            <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </NavigationProvider>
     </ThemeProvider>
   );
 }

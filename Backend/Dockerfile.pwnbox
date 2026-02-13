@@ -43,8 +43,18 @@ RUN mkdir /var/run/sshd
 RUN useradd -m -s /bin/bash chakra && \
     echo 'chakra:user' | chpasswd && \
     usermod -aG sudo chakra && \
+    echo "chakra ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     (groupadd wireshark || true) && \
     usermod -aG wireshark chakra
+
+# Install additional toolsets for specialized red-teaming
+RUN apt-get update && apt-get install -y \
+    hashcat \
+    john \
+    hydra \
+    gobuster \
+    sqlmap \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configure SSH to allow password auth
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
@@ -58,9 +68,27 @@ WORKDIR /home/chakra
 RUN echo 'chakra{dashed_filename_master}' > -
 RUN chown chakra:chakra -
 
-# Readme
-RUN echo "Welcome to Chakra PwnBox!\n\nLevel 1 Goal: Read the file named '-'.\n" > README.txt
-RUN chown chakra:chakra README.txt
+# Readme and Custom MOTD
+RUN echo "\n\
+    ██████╗██╗  ██╗ █████╗ ██╗  ██╗██████╗  █████╗     ██╗   ██╗██╗███████╗██╗    ██╗\n\
+    ██╔════╝██║  ██║██╔══██╗██║ ██╔╝██╔══██╗██╔══██╗    ██║   ██║██║██╔════╝██║    ██║\n\
+    ██║     ███████║███████║█████╔╝ ██████╔╝███████║    ██║   ██║██║█████╗  ██║ █╗ ██║\n\
+    ██║     ██╔══██║██╔══██║██╔═██╗ ██╔══██╗██╔══██║    ╚██╗ ██╔╝██║██╔══╝  ██║███╗██║\n\
+    ╚██████╗██║  ██║██║  ██║██║  ██╗██║  ██║██║  ██║     ╚████╔╝ ██║███████╗╚███╔███╔╝\n\
+    ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝      ╚═══╝  ╚═╝╚══════╝ ╚══╝╚══╝ \n\n\
+    OS: Chakra-Kernel (Ubuntu 20.04 LTS)\n\
+    ACCESS: Sudo-Enabled (Unrestricted)\n\n\
+    [!] This is a pure Linux environment. Windows commands (CMD/PowerShell) are not applicable.\n\
+    [!] To install new tools: sudo apt update && sudo apt install <package>\n" > /etc/motd
+
+RUN echo "Welcome to Chakra PwnBox!\n\nLevel 1 Goal: Read the file named '-'.\nUse 'cat -- -' to read files starting with a dash.\n" > /home/chakra/README.txt
+RUN chown chakra:chakra /home/chakra/README.txt
+
+# Add helpful aliases for Windows-minded users
+RUN echo "alias ipconfig='echo [!] Use ip addr or ifconfig on Linux'" >> /home/chakra/.bashrc && \
+    echo "alias cls='clear'" >> /home/chakra/.bashrc && \
+    echo "alias help='echo [!] This is Linux. Use man <command> for help.'" >> /home/chakra/.bashrc && \
+    echo "alias dir='ls -F'" >> /home/chakra/.bashrc
 
 # Copy Phantom Shop, AI Simulator, and Easy Labs
 COPY phantom-shop /opt/phantom-shop
@@ -73,7 +101,10 @@ RUN chmod +x /opt/easy-labs/start_labs.sh
 
 # Copy and setup startup script
 COPY pwnbox-start.sh /start.sh
-RUN chmod +x /start.sh
+RUN tr -d '\r' < /start.sh > /start.sh.tmp && mv /start.sh.tmp /start.sh && chmod +x /start.sh
+
+# Fix line endings for other scripts as well
+RUN find /opt -name "*.sh" -exec sh -c "tr -d '\r' < {} > {}.tmp && mv {}.tmp {} && chmod +x {}" \;
 
 EXPOSE 22 8088 9091 5101 5102 5103 5104 5105
 

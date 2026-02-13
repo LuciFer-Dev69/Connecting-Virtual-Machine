@@ -1,44 +1,38 @@
 import React, { useState, useRef } from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
-import { API_BASE } from "../config";
+import { Shield, Camera, Trash2, Save, LogOut, User, Mail, Calendar, Activity, Lock, Palette } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import PageTemplate from "../components/templates/PageTemplate";
+import './Profile.css';
 
 export default function Profile() {
   const { theme, toggleTheme } = useTheme();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const [name, setName] = useState(user?.name || "");
+  const [name, setName] = useState(user?.name || user?.username || "");
   const [email, setEmail] = useState(user?.email || "");
   const [profilePic, setProfilePic] = useState(user?.profilePic || "");
   const [msg, setMsg] = useState("");
-  const [msgType, setMsgType] = useState(""); // success or error
+  const [msgType, setMsgType] = useState("");
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         setMsg("Image size should be less than 2MB");
         setMsgType("error");
         return;
       }
-
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePic(reader.result);
-      };
+      reader.onloadend = () => setProfilePic(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
-
-    // Save directly to localStorage
     const updatedUser = { ...user, name, email, profilePic };
     localStorage.setItem("user", JSON.stringify(updatedUser));
-    setMsg("Profile saved successfully!");
+    setMsg("Identity updated successfully.");
     setMsgType("success");
     setTimeout(() => setMsg(""), 3000);
   };
@@ -48,376 +42,189 @@ export default function Profile() {
     window.location.hash = "#/login";
   };
 
-  const handleRemovePhoto = () => {
-    setProfilePic("");
+  // Mock Heatmap Data
+  const renderHeatmap = () => {
+    const bubbles = [];
+    for (let i = 0; i < 60; i++) {
+      const lvl = Math.floor(Math.random() * 5); // 0-4
+      bubbles.push(<div key={i} className={`heat-box lvl-${lvl}`}></div>);
+    }
+    return bubbles;
   };
 
   return (
-    <div>
-      <Navbar />
-      <div style={{ display: "flex" }}>
-        <Sidebar active="profile" />
-        <main style={{
-          flex: 1,
-          padding: "40px",
-          background: "var(--bg)",
-          minHeight: "100vh"
-        }}>
-          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-            {/* Header */}
-            <div style={{ marginBottom: "40px" }}>
-              <h1 style={{
-                color: "var(--cyan)",
-                fontSize: "42px",
-                marginBottom: "10px",
-                fontWeight: "bold"
-              }}>
-                Profile Settings
-              </h1>
-              <p style={{ color: "#888", fontSize: "16px" }}>
-                Manage your account information and preferences
-              </p>
-            </div>
+    <div className="profile-view-container">
+      <PageTemplate
+        title="Operative Identity"
+        subtitle="Manage your digital footprint and operational preferences."
+      >
+        <div className="profile-container">
 
-            <div style={{ display: "flex", gap: "30px", flexWrap: "wrap" }}>
-              {/* Left Section - Profile Picture */}
-              <div style={{ flex: "0 0 300px" }}>
-                <div style={{
-                  background: "var(--card-bg)",
-                  backdropFilter: "blur(10px)",
-                  border: "1px solid var(--card-border)",
-                  borderRadius: "15px",
-                  padding: "30px",
-                  textAlign: "center"
-                }}>
-                  <h3 style={{ color: "var(--text)", marginBottom: "25px", fontSize: "18px" }}>
-                    Profile Picture
-                  </h3>
+          {/* 1. Header Card */}
+          <div className="profile-header-card">
+            <div className="profile-cover"></div>
+            <div className="profile-header-content">
 
-                  {/* Profile Picture Display */}
-                  <div style={{
-                    width: "150px",
-                    height: "150px",
-                    margin: "0 auto 25px",
-                    borderRadius: "50%",
-                    overflow: "hidden",
-                    border: "4px solid var(--cyan)",
-                    background: "#333",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative"
-                  }}>
-                    {profilePic ? (
-                      <img
-                        src={profilePic}
-                        alt="Profile"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover"
-                        }}
-                      />
-                    ) : (
-                      <div style={{ fontSize: "64px" }}>👤</div>
-                    )}
-                  </div>
+              <div className="avatar-wrapper">
+                {profilePic ? (
+                  <img src={profilePic} alt="Profile" className="avatar-img" />
+                ) : (
+                  <div className="avatar-placeholder"><User size={48} /></div>
+                )}
+                <button
+                  className="avatar-edit-btn"
+                  onClick={() => fileInputRef.current.click()}
+                  title="Update Avatar"
+                >
+                  <Camera size={18} />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                />
+              </div>
 
-                  {/* Hidden file input */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
-
-                  {/* Upload Button */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current.click()}
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      background: "linear-gradient(90deg, #00d4ff, #00ff88)",
-                      color: "#000",
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      border: "none",
-                      borderRadius: "10px",
-                      cursor: "pointer",
-                      marginBottom: "10px",
-                      transition: "transform 0.2s ease"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-                  >
-                    📁 Choose Photo
-                  </button>
-
-                  {/* Remove Photo Button */}
-                  {profilePic && (
-                    <button
-                      type="button"
-                      onClick={handleRemovePhoto}
-                      style={{
-                        width: "100%",
-                        padding: "12px",
-                        background: "rgba(255, 77, 77, 0.2)",
-                        color: "#ff4d4d",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        border: "1px solid rgba(255, 77, 77, 0.4)",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(255, 77, 77, 0.3)";
-                        e.currentTarget.style.transform = "translateY(-2px)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "rgba(255, 77, 77, 0.2)";
-                        e.currentTarget.style.transform = "translateY(0)";
-                      }}
-                    >
-                      🗑️ Remove Photo
-                    </button>
-                  )}
-
-                  <p style={{
-                    color: "#666",
-                    fontSize: "12px",
-                    marginTop: "15px",
-                    lineHeight: "1.5"
-                  }}>
-                    Recommended: Square image, at least 400x400px, max 2MB
-                  </p>
+              <div className="user-identity">
+                <h2>{name || "Unknown Operative"}</h2>
+                <div className="user-identity-meta">
+                  <span className="meta-item"><Shield size={14} className="meta-icon" /> Level {user.level || 1} Operative</span>
+                  <span className="meta-item"><Calendar size={14} className="meta-icon" /> Joined {new Date().getFullYear()}</span>
                 </div>
               </div>
 
-              {/* Right Section - Form */}
-              <div style={{ flex: 1, minWidth: "300px" }}>
-                <form onSubmit={handleSave}>
-                  <div style={{
-                    background: "var(--card-bg)",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid var(--card-border)",
-                    borderRadius: "15px",
-                    padding: "30px",
-                    marginBottom: "20px"
-                  }}>
-                    <h3 style={{ color: "var(--text)", marginBottom: "25px", fontSize: "18px" }}>
-                      Account Information
-                    </h3>
-
-                    {/* Theme Toggle */}
-                    <div style={{ marginBottom: "25px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <label style={{
-                        color: "var(--text)",
-                        fontSize: "14px",
-                        fontWeight: "500"
-                      }}>
-                        App Theme
-                      </label>
-                      <button
-                        type="button"
-                        onClick={toggleTheme}
-                        style={{
-                          background: "var(--card-bg)",
-                          border: "1px solid var(--cyan)",
-                          color: "var(--cyan)",
-                          padding: "8px 16px",
-                          borderRadius: "20px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          fontSize: "14px",
-                          fontWeight: "bold",
-                          transition: "all 0.3s ease"
-                        }}
-                      >
-                        {theme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode'}
-                      </button>
-                    </div>
-
-                    {/* Username Field */}
-                    <div style={{ marginBottom: "25px" }}>
-                      <label style={{
-                        display: "block",
-                        color: "var(--text)",
-                        marginBottom: "8px",
-                        fontSize: "14px",
-                        fontWeight: "500"
-                      }}>
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "12px 15px",
-                          background: "var(--input-bg)",
-                          border: "1px solid var(--card-border)",
-                          borderRadius: "10px",
-                          color: "var(--text)",
-                          fontSize: "15px",
-                          outline: "none",
-                          transition: "all 0.3s ease"
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = "#00d4ff"}
-                        onBlur={(e) => e.target.style.borderColor = "var(--card-border)"}
-                      />
-                    </div>
-
-                    {/* Email Field */}
-                    <div style={{ marginBottom: "25px" }}>
-                      <label style={{
-                        display: "block",
-                        color: "var(--text)",
-                        marginBottom: "8px",
-                        fontSize: "14px",
-                        fontWeight: "500"
-                      }}>
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "12px 15px",
-                          background: "var(--input-bg)",
-                          border: "1px solid var(--card-border)",
-                          borderRadius: "10px",
-                          color: "var(--text)",
-                          fontSize: "15px",
-                          outline: "none",
-                          transition: "all 0.3s ease"
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = "#00d4ff"}
-                        onBlur={(e) => e.target.style.borderColor = "var(--card-border)"}
-                      />
-                    </div>
-
-                    {/* Account Stats */}
-                    <div style={{
-                      marginTop: "30px",
-                      padding: "20px",
-                      background: "rgba(0, 212, 255, 0.1)",
-                      border: "1px solid rgba(0, 212, 255, 0.3)",
-                      borderRadius: "10px"
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-                        <span style={{ color: "#888", fontSize: "14px" }}>Progress</span>
-                        <span style={{ color: "#00d4ff", fontSize: "14px", fontWeight: "600" }}>
-                          {user?.progress || 0}%
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-                        <span style={{ color: "#888", fontSize: "14px" }}>Level</span>
-                        <span style={{ color: "#00ff88", fontSize: "14px", fontWeight: "600" }}>
-                          {Math.floor((user?.progress || 0) / 10) + 1}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ color: "#888", fontSize: "14px" }}>Member Since</span>
-                        <span style={{ color: "#fff", fontSize: "14px", fontWeight: "600" }}>
-                          {new Date().toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div style={{ display: "flex", gap: "15px" }}>
-                    <button
-                      type="submit"
-                      style={{
-                        flex: 1,
-                        padding: "14px",
-                        background: "linear-gradient(90deg, #00d4ff, #00ff88)",
-                        color: "#000",
-                        fontSize: "16px",
-                        fontWeight: "bold",
-                        border: "none",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        transition: "transform 0.2s ease",
-                        boxShadow: "0 5px 20px rgba(0, 212, 255, 0.3)"
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-                    >
-                      💾 Save Changes
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      style={{
-                        flex: 1,
-                        padding: "14px",
-                        background: "transparent",
-                        color: "var(--text)",
-                        fontSize: "16px",
-                        fontWeight: "bold",
-                        border: "1px solid var(--card-border)",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(255, 77, 77, 0.2)";
-                        e.currentTarget.style.borderColor = "#ff4d4d";
-                        e.currentTarget.style.color = "#ff4d4d";
-                        e.currentTarget.style.transform = "translateY(-2px)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.borderColor = "var(--card-border)";
-                        e.currentTarget.style.color = "var(--text)";
-                        e.currentTarget.style.transform = "translateY(0)";
-                      }}
-                    >
-                      🚪 Logout
-                    </button>
-                  </div>
-
-                  {/* Success/Error Message */}
-                  {msg && (
-                    <div style={{
-                      marginTop: "20px",
-                      padding: "15px",
-                      background: msgType === "success"
-                        ? "rgba(81, 207, 102, 0.15)"
-                        : "rgba(255, 77, 77, 0.15)",
-                      border: `1px solid ${msgType === "success" ? "#51cf66" : "#ff4d4d"}`,
-                      borderRadius: "10px",
-                      color: msgType === "success" ? "#51cf66" : "#ff4d4d",
-                      fontSize: "14px",
-                      textAlign: "center",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "10px"
-                    }}>
-                      <span>{msgType === "success" ? "✅" : "⚠️"}</span>
-                      <span>{msg}</span>
-                    </div>
-                  )}
-                </form>
+              <div className="header-stats">
+                <div className="stat-box">
+                  <span className="stat-value">{user.progress || 0}</span>
+                  <span className="stat-label">XP Points</span>
+                </div>
+                <div className="stat-box">
+                  <span className="stat-value">#42</span>
+                  <span className="stat-label">Global Rank</span>
+                </div>
+                <div className="stat-box">
+                  <span className="stat-value">12</span>
+                  <span className="stat-label">Badges</span>
+                </div>
               </div>
+
             </div>
           </div>
-        </main>
-      </div>
+
+          {/* 2. Main Grid */}
+          <div className="profile-main-grid">
+
+            {/* Column 1: Identity Form */}
+            <div className="profile-card">
+              <div className="card-header">
+                <h3 className="card-title"><User size={20} /> Identity Settings</h3>
+              </div>
+
+              <form onSubmit={handleSave} className="form-grid">
+                <div className="form-group">
+                  <label className="label-text">Operative Alias / Name</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter alias"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="label-text">Secure Comm Channel (Email)</label>
+                  <input
+                    type="email"
+                    className="input-field"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="agent@chakraview.io"
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="label-text">Bio / Mission Statement</label>
+                  <textarea
+                    className="input-field"
+                    rows={3}
+                    placeholder="Describe your operational focus..."
+                    style={{ resize: 'none' }}
+                  ></textarea>
+                </div>
+              </form>
+
+              <div className="action-bar">
+                {msg && (
+                  <span className={`form-message ${msgType}`} style={{ marginRight: 'auto' }}>
+                    {msg}
+                  </span>
+                )}
+                <button type="button" className="btn-save" onClick={handleSave}>
+                  <Save size={18} /> Update Identity
+                </button>
+              </div>
+            </div>
+
+            {/* Column 2: Stats & Preferences */}
+            <div className="profile-column-right" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+              {/* Activity Card */}
+              <div className="profile-card">
+                <div className="card-header">
+                  <h3 className="card-title"><Activity size={20} /> Operational Activity</h3>
+                </div>
+                <div className="activity-heatmap" style={{ marginTop: '16px' }}>
+                  {renderHeatmap()}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px', marginTop: '8px', fontSize: '10px', color: '#64748b' }}>
+                  <span>Less</span>
+                  <div className="heat-box lvl-0" style={{ width: 10, height: 10 }}></div>
+                  <div className="heat-box lvl-2" style={{ width: 10, height: 10 }}></div>
+                  <div className="heat-box lvl-4" style={{ width: 10, height: 10 }}></div>
+                  <span>More</span>
+                </div>
+              </div>
+
+              {/* Preferences Card */}
+              <div className="profile-card">
+                <div className="card-header">
+                  <h3 className="card-title"><Palette size={20} /> System Preferences</h3>
+                </div>
+
+                <div className="pref-row">
+                  <div className="pref-info">
+                    <h4>Interface Theme</h4>
+                    <p>Toggle system dark mode.</p>
+                  </div>
+                  <button onClick={toggleTheme} className="btn-toggle">
+                    {theme === 'dark' ? 'Dark' : 'Light'}
+                  </button>
+                </div>
+
+                <div className="pref-row">
+                  <div className="pref-info">
+                    <h4>2FA Security</h4>
+                    <p>Enhanced login protection.</p>
+                  </div>
+                  <button className="btn-toggle">Enable</button>
+                </div>
+
+                <div className="pref-row" style={{ marginTop: 'auto', paddingTop: '24px' }}>
+                  <button className="btn-logout" style={{ width: '100%', justifyContent: 'center' }} onClick={handleLogout}>
+                    <LogOut size={18} /> Logout
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </PageTemplate>
     </div>
   );
 }

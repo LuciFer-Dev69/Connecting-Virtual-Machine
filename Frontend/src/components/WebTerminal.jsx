@@ -5,15 +5,12 @@ import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 import io from 'socket.io-client';
 
-const WebTerminal = ({ host, user, onExit, challenge_id }) => {
+const WebTerminal = ({ connectionInfo, onExit, challenge_id }) => {
     const terminalRef = useRef(null);
     const socketRef = useRef(null);
     const termRef = useRef(null);
     const [connected, setConnected] = useState(false);
-
-
     const [suggestion, setSuggestion] = useState("");
-    const [commandBuffer, setCommandBuffer] = useState("");
     const [history, setHistory] = useState([]);
 
     const getMentorSuggestion = async (cmdHistory) => {
@@ -21,7 +18,10 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
             const res = await fetch(`http://localhost:5000/api/ai/mentor`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ history: cmdHistory, lab_name: host })
+                body: JSON.stringify({
+                    history: cmdHistory,
+                    lab_name: connectionInfo?.username || 'pwnbox'
+                })
             });
             const data = await res.json();
             setSuggestion(data.suggestion);
@@ -61,9 +61,12 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
         socketRef.current = socket;
 
         socket.on('connect', () => {
-            term.write('\r\n\x1b[1;36mInitializing Secure Connection...\x1b[0m\r\n');
+            term.write('\r\n\x1b[1;36mInitializing Neural Uplink...\x1b[0m\r\n');
             socket.emit('ssh_connect', {
-                clientVersion: '1.0.0',
+                host: connectionInfo?.ip || 'localhost',
+                port: connectionInfo?.port, // Strict: No fallback to 22
+                username: connectionInfo?.user || 'chakra',
+                password: connectionInfo?.password || 'user',
                 challenge_id: challenge_id
             });
             setConnected(true);
@@ -75,13 +78,13 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
         });
 
         socket.on('ssh_error', (msg) => {
-            term.write(`\r\n\x1b[31mConnection Error: ${msg}\x1b[0m\r\n`);
+            term.write(`\r\n\x1b[31mUplink Failure: ${msg}\x1b[0m\r\n`);
             setConnected(false);
             connectedRef.current = false;
         });
 
         socket.on('ssh_disconnect', () => {
-            term.write('\r\n\x1b[33mSession Terminated.\x1b[0m\r\n');
+            term.write('\r\n\x1b[33mNeural Disconnection.\x1b[0m\r\n');
             setConnected(false);
             connectedRef.current = false;
             if (onExit) onExit();
@@ -93,7 +96,6 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
             if (connectedRef.current) {
                 socket.emit('ssh_input', data);
 
-                // Track commands for AI
                 if (data === '\r' || data === '\n') {
                     if (currentCmd.trim()) {
                         setHistory(prev => {
@@ -103,7 +105,7 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
                         });
                     }
                     currentCmd = "";
-                } else if (data === '\x7f') { // Backspace
+                } else if (data === '\x7f') {
                     currentCmd = currentCmd.slice(0, -1);
                 } else {
                     currentCmd += data;
@@ -119,7 +121,7 @@ const WebTerminal = ({ host, user, onExit, challenge_id }) => {
             term.dispose();
             window.removeEventListener('resize', handleResize);
         };
-    }, [host, user, onExit]);
+    }, [connectionInfo, onExit]);
 
     return (
         <div style={{ position: "relative", height: "100%", width: "100%" }}>
